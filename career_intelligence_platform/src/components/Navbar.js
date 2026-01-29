@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../App.css';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const loadUserFromStorage = () => {
     try {
@@ -27,6 +28,18 @@ const Navbar = () => {
     };
   }, []);
 
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('authUser');
+      localStorage.removeItem('authToken');
+      window.dispatchEvent(new Event('auth-changed'));
+    } catch (e) {
+      console.warn('Failed to clear auth data', e);
+    }
+
+    navigate('/login');
+  };
+
   const firstInitial = user?.name ? user.name.trim().charAt(0).toUpperCase() : '';
 
   return (
@@ -49,10 +62,15 @@ const Navbar = () => {
 
         {user && (
           <div className="navbar-user">
-            <div className="avatar-circle">
-              {firstInitial}
-            </div>
+            <div className="avatar-circle">{firstInitial}</div>
             <span className="navbar-username">{user.name}</span>
+            <button
+              type="button"
+              className="navbar-logout"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
           </div>
         )}
       </div>

@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../App.css';
 import Navbar from './Navbar';
-
-const API_BASE = 'http://localhost:5000';
+import { API_BASE } from '../config';
 
 const SignupPage = () => {
   const navigate = useNavigate();

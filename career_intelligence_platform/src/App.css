@@ -54,6 +54,20 @@
   color: #e5e7eb;
 }
 
+.navbar-logout {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.navbar-logout:hover {
+  color: #f9fafb;
+  text-decoration: underline;
+}
+
 .btn {
   border-radius: 9999px;
   padding: 0.45rem 1.1rem;

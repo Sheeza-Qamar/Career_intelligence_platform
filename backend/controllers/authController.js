@@ -4,6 +4,20 @@ const db = require('../db');
 
 const connection = db.promise();
 
+// Basic strong-password policy used on the server as well as the client:
+// - At least 8 characters
+// - At least 1 uppercase letter
+// - At least 1 digit
+// - At least 1 special character
+const isStrongPassword = (password) => {
+  if (typeof password !== 'string') return false;
+  const lengthOk = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  return lengthOk && hasUppercase && hasNumber && hasSpecial;
+};
+
 const generateToken = (user) => {
   const secret = process.env.JWT_SECRET || 'change_me_in_production';
   const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
@@ -25,6 +39,13 @@ exports.signup = async (req, res) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required.' });
+    }
+
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        message:
+          'Password must be at least 8 characters and include 1 uppercase letter, 1 number, and 1 special character.',
+      });
     }
 
     const [existing] = await connection.query('SELECT id FROM users WHERE email = ?', [email]);
