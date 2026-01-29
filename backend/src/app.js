@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 // Ensure DB connection is initialized
-require('../db');
+require('./config/db');
 
 const requireAuth = require('../middleware/authMiddleware');
 

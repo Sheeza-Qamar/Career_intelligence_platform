@@ -1,7 +1,11 @@
-// backend/db.js
+/**
+ * MySQL connection config. Loaded once at app start.
+ * Use db.promise() for async/await in controllers.
+ */
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
-dotenv.config();
+
+dotenv.config({ path: require('path').resolve(__dirname, '../../.env') });
 
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,
