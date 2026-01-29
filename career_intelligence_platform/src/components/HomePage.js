@@ -16,11 +16,14 @@ const HomePage = () => {
             gaps, and a personalized learning roadmap.
           </p>
           <div className="hero-actions">
+            <Link to="/upload" className="btn btn-primary">
+              Upload Resume
+            </Link>
             <Link to="/signup" className="btn btn-primary">
               Get Started
             </Link>
             <Link to="/login" className="btn btn-ghost">
-              Learn More
+              Login
             </Link>
           </div>
         </div>

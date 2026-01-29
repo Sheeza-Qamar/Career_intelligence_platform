@@ -2,11 +2,14 @@ const express = require('express');
 const cors = require('cors');
 
 // Ensure DB connection is initialized
-require('./config/db');
+require('../db');
 
 const requireAuth = require('../middleware/authMiddleware');
 
 const authRoutes = require('../routes/authRoutes');
+const resumeRoutes = require('../routes/resumeRoutes');
+const jobRoleRoutes = require('../routes/jobRoleRoutes');
+const analysisRoutes = require('../routes/analysisRoutes');
 
 const app = express();
 
@@ -23,6 +26,9 @@ app.get('/api/me', requireAuth, (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/resumes', resumeRoutes);
+app.use('/api/job-roles', jobRoleRoutes);
+app.use('/api/analyses', analysisRoutes);
 
 module.exports = app;
 

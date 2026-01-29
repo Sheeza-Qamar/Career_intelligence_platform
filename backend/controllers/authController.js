@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../src/config/db');
+const db = require('../db');
 
 const connection = db.promise();
 

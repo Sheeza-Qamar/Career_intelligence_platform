@@ -248,3 +248,201 @@
   color: #fca5a5;
   list-style-type: disc;
 }
+
+/* Upload Resume page */
+.upload-card {
+  max-width: 480px;
+}
+
+.upload-my-resume {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(30, 58, 138, 0.2);
+  margin-bottom: 0.5rem;
+}
+
+.upload-my-resume-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.upload-my-resume-filename {
+  font-size: 0.95rem;
+  color: #e5e7eb;
+  font-weight: 500;
+}
+
+.upload-form {
+  gap: 1.25rem;
+}
+
+.upload-label {
+  margin-bottom: 0.25rem;
+}
+
+.upload-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.9);
+  min-height: 2.75rem;
+}
+
+.upload-file-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-file-name {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.upload-file-input:focus + .upload-file-name,
+.upload-input-wrap:hover .upload-file-name {
+  color: #e5e7eb;
+}
+
+.upload-resume-id {
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+
+.upload-links {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.link-ghost {
+  color: #a5b4fc;
+  text-decoration: underline;
+}
+
+.link-ghost:hover {
+  color: #c7d2fe;
+}
+
+.auth-select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.upload-divider {
+  border: none;
+  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  margin: 1.25rem 0 0.75rem;
+}
+
+/* Analysis result page */
+.analysis-result-main {
+  padding-bottom: 3rem;
+}
+
+.analysis-result-card {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.analysis-score-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.analysis-score-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(#4f46e5 calc(var(--score) * 1%), rgba(148, 163, 184, 0.3) 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+}
+
+.analysis-score-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.analysis-score-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.analysis-section {
+  margin-top: 1.5rem;
+}
+
+.analysis-section-title {
+  font-size: 1rem;
+  color: #e5e7eb;
+  margin-bottom: 0.5rem;
+}
+
+.analysis-skill-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.analysis-skill-list li {
+  margin-bottom: 0.25rem;
+}
+
+.analysis-roadmap-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.analysis-roadmap-item {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.analysis-roadmap-item strong {
+  display: block;
+  color: #e5e7eb;
+  margin-bottom: 0.25rem;
+}
+
+.analysis-roadmap-note {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  display: block;
+}
+
+.analysis-resource-link {
+  font-size: 0.85rem;
+  color: #a5b4fc;
+  text-decoration: underline;
+  margin-top: 0.25rem;
+  display: inline-block;
+}
+
+.analysis-empty {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
