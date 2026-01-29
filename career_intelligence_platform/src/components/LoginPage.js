@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../App.css';
+import Navbar from './Navbar';
 
 const API_BASE = 'http://localhost:5000';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,8 +25,22 @@ const LoginPage = () => {
         email,
         password,
       });
+
+      const { user, token } = res.data || {};
+
+      if (user && token) {
+        try {
+          localStorage.setItem('authUser', JSON.stringify(user));
+          localStorage.setItem('authToken', token);
+          window.dispatchEvent(new Event('auth-changed'));
+        } catch (e) {
+          console.warn('Failed to persist auth data', e);
+        }
+      }
+
       setSuccess('Logged in successfully.');
       console.log('Login response:', res.data);
+      navigate('/');
     } catch (err) {
       const message =
         err.response?.data?.message || 'Login failed. Please check your credentials.';
@@ -35,11 +52,7 @@ const LoginPage = () => {
 
   return (
     <div className="app-root auth-page">
-      <nav className="navbar">
-        <div className="navbar-left">
-          <span className="navbar-logo">Career Intelligence</span>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="auth-main">
         <div className="auth-card">

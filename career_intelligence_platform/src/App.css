@@ -28,6 +28,32 @@
   gap: 0.75rem;
 }
 
+.navbar-user {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 2px solid #e5e7eb;
+}
+
+.navbar-username {
+  font-size: 0.8rem;
+  color: #e5e7eb;
+}
+
 .btn {
   border-radius: 9999px;
   padding: 0.45rem 1.1rem;
@@ -158,6 +184,34 @@
   box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.7);
 }
 
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field .auth-input {
+  width: 100%;
+  padding-right: 2.2rem; /* space for eye icon inside input */
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #ffffff; /* white eye for better visibility */
+  padding: 0;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  background: transparent;
+}
+
 .auth-error {
   color: #fca5a5;
   font-size: 0.85rem;
@@ -171,4 +225,12 @@
 .auth-submit {
   width: 100%;
   margin-top: 0.5rem;
+}
+
+.password-hint {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: #fca5a5;
+  list-style-type: disc;
 }

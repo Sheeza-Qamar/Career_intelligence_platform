@@ -1,23 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../App.css';
+import Navbar from './Navbar';
 
 const HomePage = () => {
   return (
     <div className="app-root">
-      <nav className="navbar">
-        <div className="navbar-left">
-          <span className="navbar-logo">Career Intelligence</span>
-        </div>
-        <div className="navbar-right">
-          <Link to="/login" className="btn btn-ghost">
-            Login
-          </Link>
-          <Link to="/signup" className="btn btn-primary">
-            Sign up
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="hero">
         <div className="hero-content">
