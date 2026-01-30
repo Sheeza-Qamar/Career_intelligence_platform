@@ -40,12 +40,34 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const firstInitial = user?.name ? user.name.trim().charAt(0).toUpperCase() : '';
+  const displayName = user?.name || user?.email || '';
+  const firstInitial = displayName ? displayName.trim().charAt(0).toUpperCase() : '';
 
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <span className="navbar-logo">Career Intelligence</span>
+        <Link to="/" className="navbar-brand">
+          <span className="navbar-mark">
+            <img
+              src={`${process.env.PUBLIC_URL}/web_logo.png`}
+              alt="Career Intelligence logo"
+              className="navbar-logo-image"
+            />
+          </span>
+          <span className="navbar-brand-text">
+            <span className="navbar-title">Career Intelligence</span>
+            <span className="navbar-subtitle">Smart Resume Analyzer</span>
+          </span>
+        </Link>
+      </div>
+
+      <div className="navbar-center">
+        <Link to="/" className="nav-link">
+          Home
+        </Link>
+        <Link to="/upload" className="nav-link">
+          Upload
+        </Link>
       </div>
 
       <div className="navbar-right">
@@ -63,14 +85,16 @@ const Navbar = () => {
         {user && (
           <div className="navbar-user">
             <div className="avatar-circle">{firstInitial}</div>
-            <span className="navbar-username">{user.name}</span>
-            <button
-              type="button"
-              className="navbar-logout"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
+            <div className="navbar-user-info">
+              <span className="navbar-username">{displayName}</span>
+              <button
+                type="button"
+                className="navbar-logout"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
           </div>
         )}
       </div>

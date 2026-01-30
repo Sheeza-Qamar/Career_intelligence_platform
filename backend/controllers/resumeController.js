@@ -3,6 +3,8 @@ const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
 const db = require('../db');
+const { parseResumeText } = require('../utils/resumeParser');
+const { buildTemplates } = require('../utils/resumeTemplates');
 
 const connection = db.promise();
 const uploadsDir = path.join(__dirname, '..', 'uploads');
@@ -53,6 +55,7 @@ exports.upload = async (req, res) => {
 
   let extractedText = '';
   let parsed_success = 0;
+  let ats_layout = null;
 
   try {
     const form = new FormData();
@@ -74,6 +77,27 @@ exports.upload = async (req, res) => {
     }
   } catch (err) {
     console.error('NLP extract-text error:', err.message || err);
+  }
+
+  try {
+    const layoutForm = new FormData();
+    layoutForm.append('file', fs.createReadStream(filePath), {
+      filename: originalFilename,
+      contentType: 'application/pdf',
+    });
+
+    const layoutResponse = await axios.post(`${NLP_SERVICE_URL}/layout-check`, layoutForm, {
+      headers: layoutForm.getHeaders(),
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
+      timeout: 30000,
+    });
+
+    if (layoutResponse.data) {
+      ats_layout = layoutResponse.data;
+    }
+  } catch (err) {
+    console.error('NLP layout-check error:', err.message || err);
   }
 
   const file_url = path.basename(filePath);
@@ -102,6 +126,7 @@ exports.upload = async (req, res) => {
         return res.status(200).json({
           resume_id: existing[0].id,
           parsed_success: parsed_success === 1,
+          ats_layout,
           message: parsed_success ? 'Resume updated and text extracted.' : 'Resume updated; text extraction failed.',
           updated: true,
         });
@@ -117,10 +142,41 @@ exports.upload = async (req, res) => {
     return res.status(201).json({
       resume_id: result.insertId,
       parsed_success: parsed_success === 1,
+      ats_layout,
       message: parsed_success ? 'Resume uploaded and text extracted.' : 'Resume uploaded; text extraction failed.',
     });
   } catch (dbErr) {
     console.error('Resume insert/update error:', dbErr);
     return res.status(500).json({ message: 'Failed to save resume.' });
+  }
+};
+
+/**
+ * GET /api/resumes/:id/ats-templates
+ * Returns 2-3 ATS template previews built from extracted text.
+ */
+exports.getAtsTemplates = async (req, res) => {
+  try {
+    const resumeId = parseInt(req.params.id, 10);
+    if (isNaN(resumeId)) {
+      return res.status(400).json({ message: 'Invalid resume id.' });
+    }
+
+    const [rows] = await connection.query(
+      'SELECT id, extracted_text FROM resumes WHERE id = ?',
+      [resumeId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Resume not found.' });
+    }
+
+    const extractedText = rows[0].extracted_text || '';
+    const parsed = parseResumeText(extractedText);
+    const templates = buildTemplates(parsed);
+
+    return res.json({ resume_id: resumeId, templates, parsed });
+  } catch (err) {
+    console.error('GET /api/resumes/:id/ats-templates error:', err);
+    return res.status(500).json({ message: 'Failed to build ATS templates.' });
   }
 };

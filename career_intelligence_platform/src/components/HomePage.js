@@ -4,8 +4,10 @@ import '../App.css';
 import Navbar from './Navbar';
 
 const HomePage = () => {
+  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
+
   return (
-    <div className="app-root">
+    <div className="app-root" style={{ '--logo-pattern': `url(${logoPattern})` }}>
       <Navbar />
 
       <main className="hero">
@@ -18,12 +20,6 @@ const HomePage = () => {
           <div className="hero-actions">
             <Link to="/upload" className="btn btn-primary">
               Upload Resume
-            </Link>
-            <Link to="/signup" className="btn btn-primary">
-              Get Started
-            </Link>
-            <Link to="/login" className="btn btn-ghost">
-              Login
             </Link>
           </div>
         </div>

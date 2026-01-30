@@ -1,9 +1,13 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const FormData = require('form-data');
 const db = require('../db');
 
 const connection = db.promise();
 
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
+const uploadsDir = path.join(__dirname, '..', 'uploads');
 
 async function getSkillsForJobRole(jobRoleId) {
   const [rows] = await connection.query(
@@ -131,9 +135,7 @@ exports.runAnalysis = async (req, res) => {
   }
 };
 
-/**
- * GET /api/analyses/:id
- */
+
 exports.getAnalysis = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -144,7 +146,8 @@ exports.getAnalysis = async (req, res) => {
     const [analyses] = await connection.query(
       `SELECT a.id, a.user_id, a.resume_id, a.job_role_id, a.match_score, a.method, a.created_at,
               jr.title AS job_role_title,
-              r.original_filename AS resume_filename
+              r.original_filename AS resume_filename,
+              r.file_url AS resume_file_url
        FROM analyses a
        LEFT JOIN job_roles jr ON a.job_role_id = jr.id
        LEFT JOIN resumes r ON a.resume_id = r.id
@@ -176,6 +179,29 @@ exports.getAnalysis = async (req, res) => {
     );
 
     const analysis = analyses[0];
+    let ats_layout = null;
+
+    if (analysis.resume_file_url) {
+      const filePath = path.join(uploadsDir, analysis.resume_file_url);
+      if (fs.existsSync(filePath)) {
+        try {
+          const form = new FormData();
+          form.append('file', fs.createReadStream(filePath), {
+            filename: analysis.resume_filename || 'resume.pdf',
+            contentType: 'application/pdf',
+          });
+          const { data } = await axios.post(`${NLP_SERVICE_URL}/layout-check`, form, {
+            headers: form.getHeaders(),
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity,
+            timeout: 30000,
+          });
+          ats_layout = data || null;
+        } catch (err) {
+          console.error('NLP layout-check error:', err.message || err);
+        }
+      }
+    }
     const result = {
       id: analysis.id,
       user_id: analysis.user_id,
@@ -201,6 +227,7 @@ exports.getAnalysis = async (req, res) => {
         resource_title: r.resource_title,
         resource_url: r.resource_url,
       })),
+      ats_layout,
     };
 
     return res.json(result);

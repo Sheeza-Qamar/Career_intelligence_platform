@@ -7,6 +7,7 @@ import { API_BASE } from '../config';
 
 const UploadResumePage = () => {
   const navigate = useNavigate();
+  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,8 +16,10 @@ const UploadResumePage = () => {
   const [success, setSuccess] = useState('');
   const [resumeId, setResumeId] = useState(null);
   const [myResumeFilename, setMyResumeFilename] = useState(null);
+  const [atsLayout, setAtsLayout] = useState(null);
   const [jobRoles, setJobRoles] = useState([]);
   const [selectedJobRoleId, setSelectedJobRoleId] = useState('');
+  const [jobRoleQuery, setJobRoleQuery] = useState('');
   const [user, setUser] = useState(null);
   const [meLoading, setMeLoading] = useState(true);
   const fileInputRef = useRef(null);
@@ -75,6 +78,7 @@ const UploadResumePage = () => {
     const chosen = e.target.files?.[0];
     setError('');
     setSuccess('');
+    setAtsLayout(null);
     if (!chosen) {
       setFile(null);
       setFileName('');
@@ -123,8 +127,10 @@ const UploadResumePage = () => {
       const id = res.data?.resume_id;
       const parsed = res.data?.parsed_success;
       const updated = res.data?.updated;
+      const layout = res.data?.ats_layout || null;
       setResumeId(id);
       setMyResumeFilename(file?.name || myResumeFilename);
+      setAtsLayout(layout);
       setSuccess(
         id
           ? updated
@@ -175,14 +181,13 @@ const UploadResumePage = () => {
 
   const hasResume = resumeId != null && myResumeFilename;
   const showUpdate = user && hasResume;
-
   return (
-    <div className="app-root auth-page">
+    <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
       <Navbar />
 
       <main className="auth-main">
         <div className="auth-card upload-card">
-          <h1 className="auth-title">Resume</h1>
+          <h1 className="auth-title upload-title">Resume</h1>
           <p className="auth-subtitle">
             {user
               ? 'One resume per account. Upload or replace your PDF for analysis.'
@@ -195,86 +200,117 @@ const UploadResumePage = () => {
 
           {!meLoading && (
             <form className="auth-form upload-form" onSubmit={handleSubmit}>
-              {showUpdate && (
-                <div className="upload-my-resume">
-                  <span className="upload-my-resume-label">Your resume:</span>
-                  <span className="upload-my-resume-filename">{myResumeFilename}</span>
-                </div>
-              )}
+              <div className="form-section">
+                <h2 className="form-section-title">Step 1: Upload resume</h2>
 
-              <label className="auth-label upload-label">
-                {showUpdate ? 'Replace with new PDF (max 10MB)' : 'PDF file (max 10MB)'}
-                <div className="upload-input-wrap">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    onChange={handleFileChange}
-                    className="upload-file-input"
-                    id="resume-file"
-                  />
-                  <span className="upload-file-name">
-                    {fileName || (showUpdate ? 'Choose a new PDF' : 'Choose a PDF file')}
+                {showUpdate && (
+                  <div className="upload-my-resume">
+                    <span className="upload-my-resume-label">Your resume:</span>
+                    <span className="upload-my-resume-filename">{myResumeFilename}</span>
+                  </div>
+                )}
+
+                <label className="auth-label upload-label">
+                  {showUpdate ? 'Replace with new PDF (max 10MB)' : 'PDF file (max 10MB)'}
+                  <div className="upload-input-wrap">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handleFileChange}
+                      className="upload-file-input"
+                      id="resume-file"
+                    />
+                    <span className="upload-file-name">
+                      {fileName || (showUpdate ? 'Choose a new PDF' : 'Choose a PDF file')}
+                    </span>
+                  </div>
+                </label>
+
+                {error && <p className="auth-error">{error}</p>}
+                {success && (
+                  <p className="auth-success">
+                    {success}
+                    {resumeId != null && !showUpdate && (
+                      <span className="upload-resume-id"> Resume ID: {resumeId}</span>
+                    )}
+                  </p>
+                )}
+                {atsLayout && (
+                  <div className="analysis-section" style={{ marginTop: '1rem' }}>
+                    <h2 className="analysis-section-title">ATS layout score</h2>
+                    <p className="auth-subtitle">
+                      Score: <strong>{atsLayout.ats_layout_score}</strong>
+                    </p>
+                    {Array.isArray(atsLayout.issues) && atsLayout.issues.length > 0 ? (
+                      <ul className="analysis-skill-list">
+                        {atsLayout.issues.map((issue, i) => (
+                          <li key={`${issue}-${i}`}>{issue}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="analysis-empty">No formatting issues detected.</p>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn btn-primary auth-submit"
+                  disabled={loading}
+                >
+                  {loading
+                    ? (showUpdate && file ? 'Updating...' : 'Uploading...')
+                    : showUpdate
+                      ? (file ? 'Update resume' : 'Choose file to replace')
+                      : file
+                        ? 'Upload Resume'
+                        : 'Choose PDF file'}
+                </button>
+              </div>
+
+              <div className="form-section">
+                <h2 className="form-section-title">Step 2: Choose job role</h2>
+
+                <label className="auth-label">
+                  <span className="job-role-label">
+                    Target Job Role you want to apply for:
                   </span>
-                </div>
-              </label>
+                  <div className="job-role-select">
+                    <input
+                      type="text"
+                      className="auth-input"
+                      placeholder="Select job"
+                      value={jobRoleQuery}
+                      list="job-role-options"
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setJobRoleQuery(value);
+                        const match = jobRoles.find(
+                          (role) =>
+                            (role.name || role.title || '').trim().toLowerCase() ===
+                            value.trim().toLowerCase()
+                        );
+                        setSelectedJobRoleId(match ? String(match.id) : '');
+                      }}
+                    />
+                    <datalist id="job-role-options">
+                      {jobRoles.map((role) => (
+                        <option key={role.id} value={role.name || role.title} />
+                      ))}
+                    </datalist>
+                  </div>
+                </label>
 
-              {error && <p className="auth-error">{error}</p>}
-              {success && (
-                <p className="auth-success">
-                  {success}
-                  {resumeId != null && !showUpdate && (
-                    <span className="upload-resume-id"> Resume ID: {resumeId}</span>
-                  )}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                className="btn btn-primary auth-submit"
-                disabled={loading}
-              >
-                {loading
-                  ? (showUpdate && file ? 'Updating...' : 'Uploading...')
-                  : showUpdate
-                    ? (file ? 'Update resume' : 'Choose file to replace')
-                    : file
-                      ? 'Upload Resume'
-                      : 'Choose PDF file'}
-              </button>
-
-            <hr className="upload-divider" />
-
-            <label className="auth-label">
-              Target job role
-              <select
-                className="auth-input auth-select"
-                value={selectedJobRoleId}
-                onChange={(e) => setSelectedJobRoleId(e.target.value)}
-              >
-                <option value="">Select a job role</option>
-                {jobRoles.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name || r.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-              <button
-                type="button"
-                className="btn btn-primary auth-submit"
-                disabled={!resumeId || !selectedJobRoleId || analyzeLoading}
-                onClick={handleAnalyze}
-              >
-                {analyzeLoading ? 'Analyzing...' : 'Analyze Resume'}
-              </button>
-
-              <p className="upload-links">
-                <Link to="/" className="link-ghost">
-                  Back to Home
-                </Link>
-              </p>
+                <button
+                  type="button"
+                  className="btn btn-primary auth-submit"
+                  disabled={!resumeId || !selectedJobRoleId || analyzeLoading}
+                  onClick={handleAnalyze}
+                >
+                  {analyzeLoading ? 'Analyzing...' : 'Check Your Job Readiness'}
+                </button>
+              </div>
             </form>
           )}
         </div>

@@ -7,6 +7,7 @@ import { API_BASE } from '../config';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,7 +51,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="app-root auth-page">
+    <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
       <Navbar />
 
       <main className="auth-main">
