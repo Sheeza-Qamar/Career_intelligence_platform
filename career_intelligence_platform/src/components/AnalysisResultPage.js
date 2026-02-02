@@ -114,9 +114,14 @@ const AnalysisResultPage = () => {
     }
   };
 
+  // Extract skills by type for 3-section display
   const missingGaps = data.gaps?.filter((g) => g.gap_type === 'missing') ?? [];
-  const weakGaps = data.gaps?.filter((g) => g.gap_type === 'weak') ?? [];
-  const matchedCount = (data.gaps?.length ?? 0) === 0 ? 0 : Math.round((data.match_score / 100) * (data.gaps?.length + missingGaps.length + weakGaps.length)) || 0;
+  const otherSkillsGaps = data.gaps?.filter((g) => g.gap_type === 'weak') ?? [];
+  
+  // Get appreciated skills from API response
+  const appreciatedSkills = Array.isArray(data.appreciated_core_skills) 
+    ? data.appreciated_core_skills 
+    : [];
 
   return (
     <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
@@ -186,63 +191,154 @@ const AnalysisResultPage = () => {
             </div>
           </div>
 
+          {/* Section 1: Appreciated Core Skills */}
           <section className="analysis-section">
-            <h2 className="analysis-section-title">Skill gaps (missing)</h2>
-            {missingGaps.length === 0 ? (
-              <p className="analysis-empty">No missing skills for this role.</p>
+            <h2 className="analysis-section-title">✅ Appreciated Core & Technical Skills</h2>
+            <p className="analysis-section-subtitle" style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.75rem' }}>
+              Skills present in your resume that are highly valued for {data.job_role_title} role
+            </p>
+            {appreciatedSkills.length === 0 && missingGaps.length === 0 && otherSkillsGaps.length === 0 ? (
+              <p className="analysis-empty">No skills data available yet.</p>
+            ) : appreciatedSkills.length === 0 ? (
+              <p className="analysis-empty">Analyzing your skills...</p>
             ) : (
               <ul className="analysis-skill-list">
-                {missingGaps.map((g) => (
-                  <li key={g.skill_id}>{g.skill_name}</li>
+                {appreciatedSkills.map((skill, idx) => (
+                  <li key={idx} style={{ color: '#86efac' }}>✓ {skill}</li>
                 ))}
               </ul>
             )}
           </section>
 
-          {weakGaps.length > 0 && (
-            <section className="analysis-section">
-              <h2 className="analysis-section-title">Weak skills</h2>
+          {/* Section 2: Missing Core Skills */}
+          <section className="analysis-section">
+            <h2 className="analysis-section-title">❌ Missing Core & Technical Skills</h2>
+            <p className="analysis-section-subtitle" style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.75rem' }}>
+              Critical skills required for {data.job_role_title} role that are missing from your resume
+            </p>
+            {missingGaps.length === 0 ? (
+              <p className="analysis-empty">Great! No missing core skills.</p>
+            ) : (
               <ul className="analysis-skill-list">
-                {weakGaps.map((g) => (
-                  <li key={g.skill_id}>{g.skill_name}</li>
+                {missingGaps.map((g) => (
+                  <li key={g.skill_id} style={{ color: '#fca5a5' }}>✗ {g.skill_name}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {/* Section 3: Other Skills */}
+          {otherSkillsGaps.length > 0 && (
+            <section className="analysis-section">
+              <h2 className="analysis-section-title">ℹ️ Other Skills</h2>
+              <p className="analysis-section-subtitle" style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '0.75rem' }}>
+                Nice-to-have skills that are not critical but would be beneficial
+              </p>
+              <ul className="analysis-skill-list">
+                {otherSkillsGaps.map((g) => (
+                  <li key={g.skill_id} style={{ color: '#d1d5db' }}>• {g.skill_name}</li>
                 ))}
               </ul>
             </section>
           )}
 
+          {/* Learning Roadmap Section */}
           <section className="analysis-section">
-            <h2 className="analysis-section-title">Learning roadmap</h2>
+            <h2 className="analysis-section-title">📚 Learning Roadmap</h2>
+            <p className="analysis-section-subtitle" style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '1rem' }}>
+              Step-by-step learning path for missing core skills
+            </p>
             {!data.roadmap?.length ? (
-              <p className="analysis-empty">No roadmap items.</p>
+              <p className="analysis-empty">No roadmap items available.</p>
             ) : (
-              <ul className="analysis-roadmap-list">
-                {data.roadmap.map((r, i) => (
-                  <li key={i} className="analysis-roadmap-item">
-                    <strong>{r.skill_name}</strong>
-                    {r.note && (
-                      <span className="analysis-roadmap-note">
-                        {(() => {
-                          if (typeof r.note !== 'string') return r.note;
-                          if (r.note.startsWith('[')) {
-                            try {
-                              const arr = JSON.parse(r.note);
-                              return Array.isArray(arr) ? arr.join(' → ') : r.note;
-                            } catch {
-                              return r.note;
-                            }
-                          }
-                          return r.note;
-                        })()}
-                      </span>
-                    )}
-                    {r.resource_url && (
-                      <a href={r.resource_url} target="_blank" rel="noopener noreferrer" className="analysis-resource-link">
-                        {r.resource_title || 'Resource'}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <div className="analysis-roadmap-container">
+                {data.roadmap.map((r, i) => {
+                  // Parse roadmap data
+                  const steps = Array.isArray(r.steps) ? r.steps : [];
+                  const resources = Array.isArray(r.resources) ? r.resources : 
+                    (r.resource_url ? [{ title: r.resource_title || 'Resource', url: r.resource_url, type: 'tutorial', thumbnail: '' }] : []);
+                  const projectIdeas = Array.isArray(r.project_ideas) ? r.project_ideas : [];
+                  
+                  return (
+                    <div key={i} className="analysis-roadmap-card">
+                      <h3 className="analysis-roadmap-skill-title">{r.skill_name}</h3>
+                      
+                      {/* Learning Steps */}
+                      {steps.length > 0 && (
+                        <div className="analysis-roadmap-steps">
+                          <h4 className="analysis-roadmap-subtitle">Learning Steps:</h4>
+                          <ol className="analysis-roadmap-steps-list">
+                            {steps.map((step, idx) => (
+                              <li key={idx}>{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+                      
+                      {/* Resources with YouTube Thumbnails */}
+                      {resources.length > 0 && (
+                        <div className="analysis-roadmap-resources">
+                          <h4 className="analysis-roadmap-subtitle">Resources:</h4>
+                          <div className="analysis-resources-grid">
+                            {resources.map((resource, idx) => {
+                              const isYouTube = resource.url && (resource.url.includes('youtube.com') || resource.url.includes('youtu.be'));
+                              return (
+                                <a
+                                  key={idx}
+                                  href={resource.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="analysis-resource-card"
+                                >
+                                  {isYouTube && resource.thumbnail && (
+                                    <img 
+                                      src={resource.thumbnail} 
+                                      alt={resource.title}
+                                      className="analysis-resource-thumbnail"
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  )}
+                                  <div className="analysis-resource-content">
+                                    <span className="analysis-resource-title">{resource.title}</span>
+                                    <span className="analysis-resource-type">{resource.type || 'tutorial'}</span>
+                                  </div>
+                                </a>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Project Ideas */}
+                      {projectIdeas.length > 0 && (
+                        <div className="analysis-roadmap-projects">
+                          <h4 className="analysis-roadmap-subtitle">Project Ideas:</h4>
+                          <ul className="analysis-project-ideas-list">
+                            {projectIdeas.map((project, idx) => {
+                              const projectObj = typeof project === 'string' 
+                                ? { title: project, description: '', difficulty: 'intermediate' }
+                                : project;
+                              return (
+                                <li key={idx} className="analysis-project-item">
+                                  <strong>{projectObj.title}</strong>
+                                  {projectObj.description && (
+                                    <p className="analysis-project-description">{projectObj.description}</p>
+                                  )}
+                                  {projectObj.difficulty && (
+                                    <span className={`analysis-project-difficulty difficulty-${projectObj.difficulty}`}>
+                                      {projectObj.difficulty}
+                                    </span>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </section>
 

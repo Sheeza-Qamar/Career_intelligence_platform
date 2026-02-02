@@ -74,9 +74,10 @@ exports.runAnalysis = async (req, res) => {
         // Use Gemini RAG for analysis
         const analysisResult = await analyzeWithGeminiRAG(resumeText, jobRoleSkills, jobRoleTitle);
         matchScore = analysisResult.match_score ?? 0;
-        matchedSkills = analysisResult.matched_skills ?? [];
-        missingSkills = analysisResult.missing_skills ?? [];
-        weakSkills = analysisResult.weak_skills ?? [];
+        // Handle new 3-section format
+        matchedSkills = analysisResult.appreciated_core_skills ?? analysisResult.matched_skills ?? [];
+        missingSkills = analysisResult.missing_core_skills ?? analysisResult.missing_skills ?? [];
+        weakSkills = analysisResult.other_skills ?? analysisResult.weak_skills ?? []; // Other skills stored as weak for backward compatibility
         roadmap = analysisResult.roadmap ?? [];
       } catch (err) {
         console.error('Gemini RAG analysis error:', err.message || err);
@@ -106,7 +107,14 @@ exports.runAnalysis = async (req, res) => {
       };
     });
 
-    // Insert missing skills with proper required_level from job role
+    // Store appreciated skills - save them with a special marker or include in response
+    // For now, we'll store them separately or include in response
+    // Appreciated skills are present, so we don't save them as gaps
+    
+    // Store appreciated skills in a temporary way - we'll include them in the response
+    const appreciatedSkillsList = matchedSkills; // These are the appreciated skills
+
+    // Insert missing core skills with proper required_level from job role
     for (const skillName of missingSkills) {
       const skillId = await ensureSkillId(skillName);
       const metadata = skillMetadataMap[skillName.toLowerCase()] || {};
@@ -117,7 +125,7 @@ exports.runAnalysis = async (req, res) => {
       );
     }
 
-    // Insert weak skills
+    // Insert other skills (stored as 'weak' type for backward compatibility, but represent 'other_skills')
     for (const skillName of weakSkills) {
       const skillId = await ensureSkillId(skillName);
       const metadata = skillMetadataMap[skillName.toLowerCase()] || {};
@@ -174,18 +182,21 @@ exports.runAnalysis = async (req, res) => {
         }
       }
 
-      // Combine steps and remaining resources in note
-      const noteParts = [];
-      if (steps.length > 0) {
-        noteParts.push(...steps);
-      }
-      if (resources.length > 1) {
-        resources.slice(1).forEach(res => {
-          if (res.title && res.url) {
-            noteParts.push(`${res.title}: ${res.url}`);
-          }
-        });
-      }
+      // Combine steps, resources, and project ideas in note
+      const noteData = {
+        steps: steps,
+        resources: resources.map(res => ({
+          title: res.title || '',
+          url: res.url || '',
+          type: res.type || 'tutorial',
+          thumbnail: res.thumbnail || ''
+        })),
+        project_ideas: Array.isArray(item.project_ideas) ? item.project_ideas.map(proj => ({
+          title: typeof proj === 'string' ? proj : (proj.title || ''),
+          description: typeof proj === 'string' ? '' : (proj.description || ''),
+          difficulty: typeof proj === 'string' ? 'intermediate' : (proj.difficulty || 'intermediate')
+        })) : []
+      };
 
       await connection.query(
         `INSERT INTO roadmap_items (analysis_id, skill_id, learning_resource_id, step_order, status, note)
@@ -195,7 +206,7 @@ exports.runAnalysis = async (req, res) => {
           skillId,
           learningResourceId,
           stepOrder,
-          noteParts.length > 0 ? JSON.stringify(noteParts) : null
+          JSON.stringify(noteData)
         ]
       );
       stepOrder += 1;
@@ -204,9 +215,9 @@ exports.runAnalysis = async (req, res) => {
     return res.status(201).json({
       analysis_id: analysisId,
       match_score: matchScore,
-      matched_skills: matchedSkills,
-      missing_skills: missingSkills,
-      weak_skills: weakSkills,
+      appreciated_core_skills: matchedSkills, // Skills present and appreciated
+      missing_core_skills: missingSkills,     // Missing core skills
+      other_skills: weakSkills,               // Other skills (less important)
       roadmap,
     });
   } catch (err) {
@@ -259,6 +270,16 @@ exports.getAnalysis = async (req, res) => {
     );
 
     const analysis = analyses[0];
+    
+    // Fetch job role skills to calculate appreciated skills
+    const jobRoleSkillsForAnalysis = await getSkillsForJobRole(analysis.job_role_id);
+    
+    // Calculate appreciated skills: required skills that are NOT in gaps (meaning they're present in resume)
+    const missingAndOtherSkillNames = gaps.map(g => g.skill_name.toLowerCase());
+    const appreciatedSkills = jobRoleSkillsForAnalysis
+      .filter(skill => !missingAndOtherSkillNames.includes(skill.name.toLowerCase()))
+      .map(skill => skill.name);
+    
     const result = {
       id: analysis.id,
       user_id: analysis.user_id,
@@ -276,14 +297,35 @@ exports.getAnalysis = async (req, res) => {
         required_level: g.required_level,
         current_confidence: Number(g.current_confidence),
       })),
-      roadmap: roadmapRows.map((r) => ({
-        skill_name: r.skill_name,
-        step_order: r.step_order,
-        status: r.status,
-        note: r.note,
-        resource_title: r.resource_title,
-        resource_url: r.resource_url,
-      })),
+      appreciated_core_skills: appreciatedSkills,
+      roadmap: roadmapRows.map((r) => {
+        // Parse note field which contains steps, resources, project_ideas
+        let parsedNote = null;
+        if (r.note) {
+          try {
+            parsedNote = typeof r.note === 'string' ? JSON.parse(r.note) : r.note;
+          } catch {
+            // Fallback for old format
+            parsedNote = { steps: [], resources: [], project_ideas: [] };
+          }
+        } else {
+          parsedNote = { steps: [], resources: [], project_ideas: [] };
+        }
+        
+        return {
+          skill_name: r.skill_name,
+          step_order: r.step_order,
+          status: r.status,
+          steps: Array.isArray(parsedNote.steps) ? parsedNote.steps : [],
+          resources: Array.isArray(parsedNote.resources) ? parsedNote.resources : 
+            (r.resource_url ? [{ title: r.resource_title || 'Resource', url: r.resource_url, type: 'tutorial' }] : []),
+          project_ideas: Array.isArray(parsedNote.project_ideas) ? parsedNote.project_ideas : [],
+          // Keep old fields for backward compatibility
+          note: r.note,
+          resource_title: r.resource_title,
+          resource_url: r.resource_url,
+        };
+      }),
     };
 
     return res.json(result);
