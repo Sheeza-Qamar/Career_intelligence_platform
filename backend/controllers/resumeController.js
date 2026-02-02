@@ -6,7 +6,8 @@ const db = require('../db');
 const { parseResumeText } = require('../utils/resumeParser');
 
 const connection = db.promise();
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+// On Vercel use /tmp (writable); otherwise use local uploads folder
+const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', 'uploads');
 
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
 
@@ -62,7 +63,8 @@ exports.upload = async (req, res) => {
       contentType: 'application/pdf',
     });
 
-    const response = await axios.post(`${NLP_SERVICE_URL}/extract-text`, form, {
+    // When NLP is on Vercel, set NLP_SERVICE_URL to https://your-nlp.vercel.app/api
+const response = await axios.post(`${NLP_SERVICE_URL.replace(/\/$/, '')}/extract-text`, form, {
       headers: form.getHeaders(),
       maxBodyLength: Infinity,
       maxContentLength: Infinity,

@@ -11,7 +11,8 @@ router.get('/me', requireAuth, (req, res, next) => {
   getMyResume(req, res).catch(next);
 });
 
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+// On Vercel use /tmp (writable); otherwise use local uploads folder
+const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }

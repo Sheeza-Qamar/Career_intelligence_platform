@@ -8,7 +8,8 @@ const { analyzeWithGeminiRAG } = require('../utils/geminiRAG');
 const connection = db.promise();
 
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+// On Vercel use /tmp (writable); otherwise use local uploads folder
+const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', 'uploads');
 
 async function getSkillsForJobRole(jobRoleId) {
   const [rows] = await connection.query(
