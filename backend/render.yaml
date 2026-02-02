@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: career-intelligence-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+    # Environment variables ko Render dashboard se manually add karein
+    # (security ke liye)
