@@ -172,7 +172,13 @@ ${resumeText.substring(0, 12000)}${resumeText.length > 12000 ? '\n[... truncated
 5. **Learning Roadmap (ONLY for Missing Core Skills):**
    - Create roadmap for EACH missing core skill
    - Provide specific, actionable learning steps
-   - Include REAL YouTube resources with video URLs
+   - Include REAL, VERIFIED, and CURRENT YouTube resources with working video URLs
+   - **CRITICAL for YouTube links:**
+     * ONLY provide YouTube links that you KNOW exist and are currently available
+     * Use popular, well-known channels (freeCodeCamp, Traversy Media, The Net Ninja, Academind, etc.)
+     * Use full YouTube URLs: https://www.youtube.com/watch?v=VIDEO_ID
+     * DO NOT make up or guess YouTube video IDs
+     * If unsure about a specific video, use official documentation or course platforms instead
    - For YouTube videos: Extract video ID and create thumbnail URL: https://img.youtube.com/vi/VIDEO_ID/mqdefault.jpg
    - Include: Course names, tutorial links, official documentation
    - Suggest practical project ideas with descriptions and difficulty levels
@@ -204,9 +210,9 @@ ${resumeText.substring(0, 12000)}${resumeText.length > 12000 ? '\n[... truncated
       "resources": [
         {
           "title": "Resource Title",
-          "url": "https://www.youtube.com/watch?v=...",
+          "url": "https://www.youtube.com/watch?v=VIDEO_ID (MUST be a real, working YouTube video URL)",
           "type": "youtube|course|tutorial|documentation",
-          "thumbnail": "https://img.youtube.com/vi/VIDEO_ID/mqdefault.jpg"
+          "thumbnail": "https://img.youtube.com/vi/VIDEO_ID/mqdefault.jpg (will be auto-generated)"
         }
       ],
       "project_ideas": [
@@ -290,10 +296,34 @@ Provide ONLY valid JSON, no additional text or explanation.`;
         
         // Extract YouTube video ID and create thumbnail URL
         let thumbnail = resourceObj.thumbnail || '';
-        if (resourceObj.url && resourceObj.url.includes('youtube.com') || resourceObj.url.includes('youtu.be')) {
-          const videoIdMatch = resourceObj.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-          if (videoIdMatch && videoIdMatch[1]) {
-            thumbnail = `https://img.youtube.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
+        if (resourceObj.url) {
+          // Handle different YouTube URL formats
+          let videoId = null;
+          
+          // Format 1: https://www.youtube.com/watch?v=VIDEO_ID
+          const watchMatch = resourceObj.url.match(/(?:youtube\.com\/watch\?v=)([^&\n?#]+)/);
+          if (watchMatch && watchMatch[1]) {
+            videoId = watchMatch[1];
+          }
+          
+          // Format 2: https://youtu.be/VIDEO_ID
+          if (!videoId) {
+            const shortMatch = resourceObj.url.match(/(?:youtu\.be\/)([^&\n?#]+)/);
+            if (shortMatch && shortMatch[1]) {
+              videoId = shortMatch[1];
+            }
+          }
+          
+          // Format 3: https://www.youtube.com/embed/VIDEO_ID
+          if (!videoId) {
+            const embedMatch = resourceObj.url.match(/(?:youtube\.com\/embed\/)([^&\n?#]+)/);
+            if (embedMatch && embedMatch[1]) {
+              videoId = embedMatch[1];
+            }
+          }
+          
+          if (videoId) {
+            thumbnail = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
           }
         }
         

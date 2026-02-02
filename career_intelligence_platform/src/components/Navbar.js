@@ -62,11 +62,11 @@ const Navbar = () => {
       </div>
 
       <div className="navbar-center">
-        <Link to="/" className="nav-link">
-          Home
-        </Link>
         <Link to="/upload" className="nav-link">
-          Upload
+          Resume Analysis
+        </Link>
+        <Link to="/" className="nav-link">
+          Job Apply
         </Link>
       </div>
 

@@ -314,6 +314,13 @@
   padding: 2rem 1rem 3rem;
 }
 
+/* Override for analysis result page - vertical scroll layout */
+.auth-main.analysis-result-main {
+  justify-content: flex-start;
+  align-items: stretch;
+  padding-top: 2rem;
+}
+
 .auth-card {
   width: 100%;
   max-width: 420px;
@@ -589,26 +596,24 @@
 /* Analysis result page */
 .analysis-result-main {
   padding-bottom: 3rem;
-}
-
-.analysis-result-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
   width: 100%;
-  max-width: 560px;
-  background: rgba(15, 23, 42, 0.95);
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
 }
 
-.analysis-result-card-with-select {
-  position: relative;
-}
+/* Removed central card wrapper - sections now show directly on body with CI animation visible */
 
 .analysis-job-select-bar {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .analysis-job-select-label {
@@ -700,27 +705,104 @@
   color: #9ca3af;
 }
 
+/* Section Cards with Spacing - Background visible between cards (CI animation shows through) */
+.analysis-section-card {
+  background: rgba(30, 41, 59, 0.85);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(8px);
+  max-width: 100%;
+}
+
+/* Job Role Selector - Smaller width and centered */
+.analysis-section-card:first-child {
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Analysis Result Summary (Match Score) - Same width as other sections */
+.analysis-section-card:nth-child(2) {
+  max-width: 100%;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+.analysis-section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 768px) {
+  .analysis-section-card {
+    padding: 2rem;
+  }
+}
+
 .analysis-section {
-  margin-top: 1.5rem;
+  margin-top: 0;
 }
 
 .analysis-section-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #e5e7eb;
   margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.analysis-section-subtitle {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+  line-height: 1.5;
 }
 
 .analysis-skill-list {
-  list-style: disc;
-  padding-left: 1.5rem;
-  color: #d1d5db;
-  font-size: 0.9rem;
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .analysis-skill-list li {
-  margin-bottom: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 0.9rem;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
+.analysis-skill-list li:hover {
+  transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.skill-appreciated {
+  color: #86efac !important;
+}
+
+.skill-missing {
+  color: #fca5a5 !important;
+}
+
+.skill-other {
+  color: #d1d5db !important;
+}
+
+.analysis-empty {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+/* Old roadmap list styles - keeping for backward compatibility if needed */
 .analysis-roadmap-list {
   list-style: none;
   padding-left: 0;
@@ -752,35 +834,44 @@
   display: inline-block;
 }
 
-.analysis-empty {
-  color: #9ca3af;
-  font-size: 0.9rem;
-}
-
-.analysis-section-subtitle {
-  font-size: 0.85rem;
-  color: #9ca3af;
-  margin-bottom: 0.75rem;
-}
-
 .analysis-roadmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 0.5rem;
+}
+
+.analysis-roadmap-item-wrapper {
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.analysis-roadmap-skill-title {
+  font-size: 1.05rem;
+  color: #e5e7eb;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.analysis-roadmap-content-grid {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.analysis-roadmap-card {
-  background: rgba(30, 41, 59, 0.6);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+.analysis-roadmap-left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.analysis-roadmap-skill-title {
-  font-size: 1.1rem;
-  color: #e5e7eb;
-  margin-bottom: 1rem;
-  font-weight: 600;
+.analysis-roadmap-right-column {
+  display: flex;
+  flex-direction: column;
 }
 
 .analysis-roadmap-subtitle {
@@ -807,7 +898,7 @@
 
 .analysis-resources-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
   margin-top: 0.75rem;
 }
@@ -836,6 +927,18 @@
   background: rgba(148, 163, 184, 0.2);
 }
 
+.youtube-placeholder {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(148, 163, 184, 0.2);
+  color: #9ca3af;
+  font-size: 2rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
 .analysis-resource-content {
   padding: 0.75rem;
   display: flex;
@@ -849,6 +952,7 @@
   font-weight: 500;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
