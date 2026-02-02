@@ -455,6 +455,10 @@
   gap: 1.25rem;
 }
 
+.upload-next-btn {
+  margin-top: 1rem;
+}
+
 .upload-label {
   margin-bottom: 0.25rem;
 }
@@ -595,6 +599,77 @@
   padding: 2rem;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.analysis-result-card-with-select {
+  position: relative;
+}
+
+.analysis-job-select-bar {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.analysis-job-select-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+.analysis-job-select-label > span {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #9ca3af;
+}
+
+.analysis-job-select-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.analysis-job-input {
+  flex: 1;
+  min-width: 160px;
+}
+
+.analysis-analyze-btn {
+  flex-shrink: 0;
+}
+
+.analysis-result-loader {
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.analysis-result-loader-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(148, 163, 184, 0.3);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: analysis-spin 0.8s linear infinite;
+}
+
+.analysis-result-loader-text {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+@keyframes analysis-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .analysis-score-wrap {

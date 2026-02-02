@@ -4,6 +4,7 @@ import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import UploadResumePage from './components/UploadResumePage';
+import AnalyzePage from './components/AnalyzePage';
 import AnalysisResultPage from './components/AnalysisResultPage';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/upload" element={<UploadResumePage />} />
+        <Route path="/analyze" element={<AnalyzePage />} />
         <Route path="/analysis/:id" element={<AnalysisResultPage />} />
       </Routes>
     </Router>

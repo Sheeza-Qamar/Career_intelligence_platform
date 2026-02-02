@@ -11,15 +11,11 @@ const UploadResumePage = () => {
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [resumeId, setResumeId] = useState(null);
   const [myResumeFilename, setMyResumeFilename] = useState(null);
   const [atsLayout, setAtsLayout] = useState(null);
-  const [jobRoles, setJobRoles] = useState([]);
-  const [selectedJobRoleId, setSelectedJobRoleId] = useState('');
-  const [jobRoleQuery, setJobRoleQuery] = useState('');
   const [user, setUser] = useState(null);
   const [meLoading, setMeLoading] = useState(true);
   const fileInputRef = useRef(null);
@@ -33,18 +29,6 @@ const UploadResumePage = () => {
     } catch {
       setUser(null);
     }
-  }, []);
-
-  useEffect(() => {
-    const fetchJobRoles = async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/job-roles`);
-        setJobRoles(Array.isArray(res.data) ? res.data : []);
-      } catch {
-        setJobRoles([]);
-      }
-    };
-    fetchJobRoles();
   }, []);
 
   useEffect(() => {
@@ -157,28 +141,6 @@ const UploadResumePage = () => {
     }
   };
 
-  const handleAnalyze = async (e) => {
-    e.preventDefault();
-    if (!resumeId || !selectedJobRoleId) {
-      setError('Please upload a resume and select a job role.');
-      return;
-    }
-    setError('');
-    setAnalyzeLoading(true);
-    try {
-      const payload = { resume_id: Number(resumeId), job_role_id: Number(selectedJobRoleId) };
-      if (user?.id) payload.user_id = user.id;
-      const res = await axios.post(`${API_BASE}/api/analyses`, payload, { timeout: 60000 });
-      const analysisId = res.data?.analysis_id;
-      if (analysisId) navigate(`/analysis/${analysisId}`);
-      else setError('Analysis completed but no result id returned.');
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Analysis failed.');
-    } finally {
-      setAnalyzeLoading(false);
-    }
-  };
-
   const hasResume = resumeId != null && myResumeFilename;
   const showUpdate = user && hasResume;
   return (
@@ -267,49 +229,20 @@ const UploadResumePage = () => {
                         ? 'Upload Resume'
                         : 'Choose PDF file'}
                 </button>
-              </div>
 
-              <div className="form-section">
-                <h2 className="form-section-title">Step 2: Choose job role</h2>
-
-                <label className="auth-label">
-                  <span className="job-role-label">
-                    Target Job Role you want to apply for:
-                  </span>
-                  <div className="job-role-select">
-                    <input
-                      type="text"
-                      className="auth-input"
-                      placeholder="Select job"
-                      value={jobRoleQuery}
-                      list="job-role-options"
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setJobRoleQuery(value);
-                        const match = jobRoles.find(
-                          (role) =>
-                            (role.name || role.title || '').trim().toLowerCase() ===
-                            value.trim().toLowerCase()
-                        );
-                        setSelectedJobRoleId(match ? String(match.id) : '');
-                      }}
-                    />
-                    <datalist id="job-role-options">
-                      {jobRoles.map((role) => (
-                        <option key={role.id} value={role.name || role.title} />
-                      ))}
-                    </datalist>
-                  </div>
-                </label>
-
-                <button
-                  type="button"
-                  className="btn btn-primary auth-submit"
-                  disabled={!resumeId || !selectedJobRoleId || analyzeLoading}
-                  onClick={handleAnalyze}
-                >
-                  {analyzeLoading ? 'Analyzing...' : 'Check Your Job Readiness'}
-                </button>
+                {hasResume && (
+                  <button
+                    type="button"
+                    className="btn btn-primary auth-submit upload-next-btn"
+                    onClick={() =>
+                      navigate('/analyze', {
+                        state: { resumeId, myResumeFilename },
+                      })
+                    }
+                  >
+                    Next
+                  </button>
+                )}
               </div>
             </form>
           )}
