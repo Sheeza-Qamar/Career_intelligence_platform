@@ -3,7 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const requireAuth = require('../middleware/authMiddleware');
-const { getMyResume, upload, getAtsTemplates } = require('../controllers/resumeController');
+const { getMyResume, upload } = require('../controllers/resumeController');
 
 const router = express.Router();
 
@@ -46,10 +46,6 @@ router.post('/upload', (req, res, next) => {
     }
     upload(req, res).catch(next);
   });
-});
-
-router.get('/:id/ats-templates', (req, res, next) => {
-  getAtsTemplates(req, res).catch(next);
 });
 
 module.exports = router;

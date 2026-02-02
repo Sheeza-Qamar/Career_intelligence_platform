@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
 const db = require('../db');
+const { analyzeWithGeminiRAG } = require('../utils/geminiRAG');
 
 const connection = db.promise();
 
@@ -11,13 +12,18 @@ const uploadsDir = path.join(__dirname, '..', 'uploads');
 
 async function getSkillsForJobRole(jobRoleId) {
   const [rows] = await connection.query(
-    `SELECT s.name FROM skills s
+    `SELECT s.name, jrs.importance, jrs.required_level 
+     FROM skills s
      INNER JOIN job_role_skills jrs ON s.id = jrs.skill_id
      WHERE jrs.job_role_id = ?
      ORDER BY jrs.importance DESC, s.name`,
     [jobRoleId]
   );
-  return rows.map((r) => r.name);
+  return rows.map((r) => ({
+    name: r.name,
+    importance: r.importance || 3,
+    required_level: r.required_level || 'intermediate'
+  }));
 }
 
 async function ensureSkillId(skillName) {
@@ -48,13 +54,14 @@ exports.runAnalysis = async (req, res) => {
       return res.status(404).json({ message: 'Resume not found.' });
     }
 
-    const [roles] = await connection.query('SELECT id FROM job_roles WHERE id = ?', [job_role_id]);
+    const [roles] = await connection.query('SELECT id, title FROM job_roles WHERE id = ?', [job_role_id]);
     if (roles.length === 0) {
       return res.status(404).json({ message: 'Job role not found.' });
     }
 
     const resumeText = resumes[0].extracted_text || '';
     const jobRoleSkills = await getSkillsForJobRole(job_role_id);
+    const jobRoleTitle = roles[0].title || 'Unknown Role';
 
     let matchScore = 0;
     let matchedSkills = [];
@@ -62,61 +69,134 @@ exports.runAnalysis = async (req, res) => {
     let weakSkills = [];
     let roadmap = [];
 
-    if (jobRoleSkills.length > 0) {
+    if (jobRoleSkills.length > 0 && resumeText.trim()) {
       try {
-        const { data } = await axios.post(
-          `${NLP_SERVICE_URL}/analyze`,
-          {
-            resume_text: resumeText,
-            job_role_skills: jobRoleSkills,
-            skill_dictionary: jobRoleSkills,
-          },
-          { timeout: 30000 }
-        );
-        matchScore = data.match_score ?? 0;
-        matchedSkills = data.matched_skills ?? [];
-        missingSkills = data.missing_skills ?? [];
-        weakSkills = data.weak_skills ?? [];
-        roadmap = data.roadmap ?? [];
+        // Use Gemini RAG for analysis
+        const analysisResult = await analyzeWithGeminiRAG(resumeText, jobRoleSkills, jobRoleTitle);
+        matchScore = analysisResult.match_score ?? 0;
+        matchedSkills = analysisResult.matched_skills ?? [];
+        missingSkills = analysisResult.missing_skills ?? [];
+        weakSkills = analysisResult.weak_skills ?? [];
+        roadmap = analysisResult.roadmap ?? [];
       } catch (err) {
-        console.error('NLP /analyze error:', err.message || err);
-        return res.status(502).json({ message: 'Analysis service unavailable. Start the Python NLP service on port 8000.' });
+        console.error('Gemini RAG analysis error:', err.message || err);
+        return res.status(502).json({ 
+          message: `Analysis failed: ${err.message || 'Gemini RAG service error'}. Please try again.` 
+        });
       }
+    } else if (jobRoleSkills.length === 0) {
+      return res.status(400).json({ message: 'No skills defined for this job role.' });
+    } else {
+      return res.status(400).json({ message: 'Resume text is empty. Please upload a valid resume.' });
     }
 
     const [analysisResult] = await connection.query(
       `INSERT INTO analyses (user_id, resume_id, job_role_id, match_score, method)
-       VALUES (?, ?, ?, ?, 'tfidf_cosine')`,
+       VALUES (?, ?, ?, ?, 'gemini_rag')`,
       [user_id, resume_id, job_role_id, matchScore]
     );
     const analysisId = analysisResult.insertId;
 
+    // Create a map of skill names to their metadata for gap insertion
+    const skillMetadataMap = {};
+    jobRoleSkills.forEach(skill => {
+      skillMetadataMap[skill.name.toLowerCase()] = {
+        importance: skill.importance,
+        required_level: skill.required_level
+      };
+    });
+
+    // Insert missing skills with proper required_level from job role
     for (const skillName of missingSkills) {
       const skillId = await ensureSkillId(skillName);
+      const metadata = skillMetadataMap[skillName.toLowerCase()] || {};
       await connection.query(
         `INSERT INTO analysis_skill_gaps (analysis_id, skill_id, gap_type, required_level, current_confidence)
-         VALUES (?, ?, 'missing', 'intermediate', 0)`,
-        [analysisId, skillId]
-      );
-    }
-    for (const skillName of weakSkills) {
-      const skillId = await ensureSkillId(skillName);
-      await connection.query(
-        `INSERT INTO analysis_skill_gaps (analysis_id, skill_id, gap_type, required_level, current_confidence)
-         VALUES (?, ?, 'weak', 'intermediate', 0)`,
-        [analysisId, skillId]
+         VALUES (?, ?, 'missing', ?, 0)`,
+        [analysisId, skillId, metadata.required_level || 'intermediate']
       );
     }
 
+    // Insert weak skills
+    for (const skillName of weakSkills) {
+      const skillId = await ensureSkillId(skillName);
+      const metadata = skillMetadataMap[skillName.toLowerCase()] || {};
+      await connection.query(
+        `INSERT INTO analysis_skill_gaps (analysis_id, skill_id, gap_type, required_level, current_confidence)
+         VALUES (?, ?, 'weak', ?, 0)`,
+        [analysisId, skillId, metadata.required_level || 'intermediate']
+      );
+    }
+
+    // Insert roadmap items with learning resources
     let stepOrder = 1;
     for (const item of roadmap) {
-      const skillName = item.skill || item;
-      const steps = item.steps || [];
+      const skillName = item.skill || item.name || '';
+      if (!skillName) continue;
+      
+      const steps = Array.isArray(item.steps) ? item.steps : [];
+      const resources = Array.isArray(item.resources) ? item.resources : [];
       const skillId = await ensureSkillId(skillName);
+
+      // Create learning resources if provided
+      let learningResourceId = null;
+      if (resources.length > 0) {
+        // Use the first resource as primary
+        const primaryResource = resources[0];
+        if (primaryResource.url) {
+          try {
+            // Check if resource already exists for this skill and URL
+            const [existing] = await connection.query(
+              `SELECT id FROM learning_resources WHERE skill_id = ? AND url = ? LIMIT 1`,
+              [skillId, primaryResource.url]
+            );
+            
+            if (existing.length > 0) {
+              learningResourceId = existing[0].id;
+            } else {
+              const [lrResult] = await connection.query(
+                `INSERT INTO learning_resources (skill_id, title, url, provider, difficulty)
+                 VALUES (?, ?, ?, ?, ?)`,
+                [
+                  skillId,
+                  primaryResource.title || 'Learning Resource',
+                  primaryResource.url,
+                  primaryResource.type || 'course',
+                  'intermediate'
+                ]
+              );
+              learningResourceId = lrResult.insertId;
+            }
+          } catch (err) {
+            console.error('Error creating learning resource:', err.message);
+            // Continue without resource if insertion fails
+          }
+        }
+      }
+
+      // Combine steps and remaining resources in note
+      const noteParts = [];
+      if (steps.length > 0) {
+        noteParts.push(...steps);
+      }
+      if (resources.length > 1) {
+        resources.slice(1).forEach(res => {
+          if (res.title && res.url) {
+            noteParts.push(`${res.title}: ${res.url}`);
+          }
+        });
+      }
+
       await connection.query(
         `INSERT INTO roadmap_items (analysis_id, skill_id, learning_resource_id, step_order, status, note)
-         VALUES (?, ?, NULL, ?, 'pending', ?)`,
-        [analysisId, skillId, stepOrder, steps.length ? JSON.stringify(steps) : null]
+         VALUES (?, ?, ?, ?, 'pending', ?)`,
+        [
+          analysisId,
+          skillId,
+          learningResourceId,
+          stepOrder,
+          noteParts.length > 0 ? JSON.stringify(noteParts) : null
+        ]
       );
       stepOrder += 1;
     }
@@ -179,29 +259,6 @@ exports.getAnalysis = async (req, res) => {
     );
 
     const analysis = analyses[0];
-    let ats_layout = null;
-
-    if (analysis.resume_file_url) {
-      const filePath = path.join(uploadsDir, analysis.resume_file_url);
-      if (fs.existsSync(filePath)) {
-        try {
-          const form = new FormData();
-          form.append('file', fs.createReadStream(filePath), {
-            filename: analysis.resume_filename || 'resume.pdf',
-            contentType: 'application/pdf',
-          });
-          const { data } = await axios.post(`${NLP_SERVICE_URL}/layout-check`, form, {
-            headers: form.getHeaders(),
-            maxBodyLength: Infinity,
-            maxContentLength: Infinity,
-            timeout: 30000,
-          });
-          ats_layout = data || null;
-        } catch (err) {
-          console.error('NLP layout-check error:', err.message || err);
-        }
-      }
-    }
     const result = {
       id: analysis.id,
       user_id: analysis.user_id,
@@ -227,7 +284,6 @@ exports.getAnalysis = async (req, res) => {
         resource_title: r.resource_title,
         resource_url: r.resource_url,
       })),
-      ats_layout,
     };
 
     return res.json(result);

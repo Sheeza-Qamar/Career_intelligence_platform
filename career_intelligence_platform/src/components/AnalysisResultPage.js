@@ -12,9 +12,6 @@ const AnalysisResultPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [templates, setTemplates] = useState([]);
-  const [templatesLoading, setTemplatesLoading] = useState(false);
-  const [templatesError, setTemplatesError] = useState('');
   const [jobRoles, setJobRoles] = useState([]);
   const [selectedJobRoleId, setSelectedJobRoleId] = useState('');
   const [jobRoleQuery, setJobRoleQuery] = useState('');
@@ -66,32 +63,6 @@ const AnalysisResultPage = () => {
     return () => { cancelled = true; };
   }, [id]);
 
-  useEffect(() => {
-    if (!data?.resume_id) return;
-    let cancelled = false;
-    const fetchTemplates = async () => {
-      setTemplatesLoading(true);
-      setTemplatesError('');
-      try {
-        const res = await axios.get(`${API_BASE}/api/resumes/${data.resume_id}/ats-templates`);
-        if (!cancelled) {
-          setTemplates(Array.isArray(res.data?.templates) ? res.data.templates : []);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setTemplatesError(
-            err.response?.data?.message || err.message || 'Failed to load ATS templates.'
-          );
-        }
-      } finally {
-        if (!cancelled) setTemplatesLoading(false);
-      }
-    };
-    fetchTemplates();
-    return () => {
-      cancelled = true;
-    };
-  }, [data?.resume_id]);
 
   if (loading) {
     return (
@@ -146,7 +117,6 @@ const AnalysisResultPage = () => {
   const missingGaps = data.gaps?.filter((g) => g.gap_type === 'missing') ?? [];
   const weakGaps = data.gaps?.filter((g) => g.gap_type === 'weak') ?? [];
   const matchedCount = (data.gaps?.length ?? 0) === 0 ? 0 : Math.round((data.match_score / 100) * (data.gaps?.length + missingGaps.length + weakGaps.length)) || 0;
-  const atsLayout = data.ats_layout || null;
 
   return (
     <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
@@ -274,41 +244,6 @@ const AnalysisResultPage = () => {
                 ))}
               </ul>
             )}
-          </section>
-
-          {atsLayout && (
-            <section className="analysis-section">
-              <h2 className="analysis-section-title">ATS layout score</h2>
-              <p className="auth-subtitle">
-                Score: <strong>{atsLayout.ats_layout_score}</strong>
-              </p>
-              {Array.isArray(atsLayout.issues) && atsLayout.issues.length > 0 ? (
-                <ul className="analysis-skill-list">
-                  {atsLayout.issues.map((issue, i) => (
-                    <li key={`${issue}-${i}`}>{issue}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="analysis-empty">No formatting issues detected.</p>
-              )}
-            </section>
-          )}
-
-          <section className="analysis-section">
-            <h2 className="analysis-section-title">ATS resume templates</h2>
-            {templatesLoading && <p className="analysis-empty">Generating templates...</p>}
-            {templatesError && <p className="auth-error">{templatesError}</p>}
-            {!templatesLoading && !templatesError && templates.length === 0 && (
-              <p className="analysis-empty">No templates available yet.</p>
-            )}
-            {templates.map((tpl) => (
-              <div key={tpl.id} className="analysis-result-card" style={{ marginTop: '1rem' }}>
-                <h3 className="analysis-section-title" style={{ marginTop: 0 }}>
-                  {tpl.title}
-                </h3>
-                <div dangerouslySetInnerHTML={{ __html: tpl.html }} />
-              </div>
-            ))}
           </section>
 
         </div>

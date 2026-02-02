@@ -15,7 +15,6 @@ const UploadResumePage = () => {
   const [success, setSuccess] = useState('');
   const [resumeId, setResumeId] = useState(null);
   const [myResumeFilename, setMyResumeFilename] = useState(null);
-  const [atsLayout, setAtsLayout] = useState(null);
   const [user, setUser] = useState(null);
   const [meLoading, setMeLoading] = useState(true);
   const fileInputRef = useRef(null);
@@ -62,7 +61,6 @@ const UploadResumePage = () => {
     const chosen = e.target.files?.[0];
     setError('');
     setSuccess('');
-    setAtsLayout(null);
     if (!chosen) {
       setFile(null);
       setFileName('');
@@ -111,10 +109,8 @@ const UploadResumePage = () => {
       const id = res.data?.resume_id;
       const parsed = res.data?.parsed_success;
       const updated = res.data?.updated;
-      const layout = res.data?.ats_layout || null;
       setResumeId(id);
       setMyResumeFilename(file?.name || myResumeFilename);
-      setAtsLayout(layout);
       setSuccess(
         id
           ? updated
@@ -197,23 +193,6 @@ const UploadResumePage = () => {
                       <span className="upload-resume-id"> Resume ID: {resumeId}</span>
                     )}
                   </p>
-                )}
-                {atsLayout && (
-                  <div className="analysis-section" style={{ marginTop: '1rem' }}>
-                    <h2 className="analysis-section-title">ATS layout score</h2>
-                    <p className="auth-subtitle">
-                      Score: <strong>{atsLayout.ats_layout_score}</strong>
-                    </p>
-                    {Array.isArray(atsLayout.issues) && atsLayout.issues.length > 0 ? (
-                      <ul className="analysis-skill-list">
-                        {atsLayout.issues.map((issue, i) => (
-                          <li key={`${issue}-${i}`}>{issue}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="analysis-empty">No formatting issues detected.</p>
-                    )}
-                  </div>
                 )}
 
                 <button
