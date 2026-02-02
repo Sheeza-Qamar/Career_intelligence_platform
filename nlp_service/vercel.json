@@ -1,3 +1,15 @@
 {
-  "version": 2
+  "version": 2,
+  "builds": [
+    { "src": "api/health.py", "use": "@vercel/python" },
+    { "src": "api/extract-text.py", "use": "@vercel/python" },
+    { "src": "api/layout-check.py", "use": "@vercel/python" },
+    { "src": "api/analyze.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/api/health", "dest": "api/health.py" },
+    { "src": "/api/extract-text", "dest": "api/extract-text.py" },
+    { "src": "/api/layout-check", "dest": "api/layout-check.py" },
+    { "src": "/api/analyze", "dest": "api/analyze.py" }
+  ]
 }
