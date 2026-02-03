@@ -7,7 +7,7 @@ import { API_BASE } from '../config';
 
 const SignupPage = () => {
   const navigate = useNavigate();
-  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
+  const logoPattern = `/web_logo.png`;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

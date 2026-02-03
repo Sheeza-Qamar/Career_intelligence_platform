@@ -49,7 +49,7 @@ const Navbar = () => {
         <Link to="/" className="navbar-brand">
           <span className="navbar-mark">
             <img
-              src={`${process.env.PUBLIC_URL}/web_logo.png`}
+              src="/web_logo.png"
               alt="Career Intelligence logo"
               className="navbar-logo-image"
             />

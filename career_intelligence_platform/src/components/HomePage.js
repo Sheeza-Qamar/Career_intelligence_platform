@@ -4,7 +4,7 @@ import '../App.css';
 import Navbar from './Navbar';
 
 const HomePage = () => {
-  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
+  const logoPattern = `/web_logo.png`;
 
   return (
     <div className="app-root" style={{ '--logo-pattern': `url(${logoPattern})` }}>

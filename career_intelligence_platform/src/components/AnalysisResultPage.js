@@ -8,7 +8,7 @@ import { API_BASE } from '../config';
 const AnalysisResultPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
+  const logoPattern = `/web_logo.png`;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

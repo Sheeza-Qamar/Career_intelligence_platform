@@ -7,7 +7,7 @@ import { API_BASE } from '../config';
 
 const UploadResumePage = () => {
   const navigate = useNavigate();
-  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
+  const logoPattern = `/web_logo.png`;
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);

@@ -8,7 +8,7 @@ import { API_BASE } from '../config';
 const AnalyzePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const logoPattern = `${process.env.PUBLIC_URL || ''}/web_logo.png`;
+  const logoPattern = `/web_logo.png`;
   const [resumeId, setResumeId] = useState(null);
   const [myResumeFilename, setMyResumeFilename] = useState('');
   const [jobRoles, setJobRoles] = useState([]);
