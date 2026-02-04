@@ -40,10 +40,11 @@ const Header = ({ resumeData, icons }) => {
               rel="noreferrer"
               className="inline-flex items-center gap-1 social-media align-center justify-center text-black"
             >
-              {icons.map((icon, index) => {
+              {icons.map((icon, iconIndex) => {
                 if (icon.name === socialMedia.socialMedia.toLowerCase()) {
-                  return <span key={index}>{icon.icon}</span>;
+                  return <span key={iconIndex}>{icon.icon}</span>;
                 }
+                return null;
               })}
               {socialMedia.link}
             </a>

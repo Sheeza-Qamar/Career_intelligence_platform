@@ -11,7 +11,7 @@ const DateRange = ({startYear, endYear, id}) => {
   const end = new Date(endYear);
   let endStr = 'Present'
 
-  if (end != "Invalid Date") {
+  if (end !== "Invalid Date") {
     endStr = `${end.toLocaleString(lang, {month: 'short'})} ${end.getFullYear()}`
   }
 

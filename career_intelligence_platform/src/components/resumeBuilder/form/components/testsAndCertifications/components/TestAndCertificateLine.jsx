@@ -1,6 +1,5 @@
 import React from 'react';
 import {handleCertificate} from "../utils/handleCertificate";
-import {removeLanguage} from "../../languages/utils/removeLanguage";
 import {BsTrash3} from "react-icons/bs";
 import {removeCertificate} from "../utils/removeCertificate";
 

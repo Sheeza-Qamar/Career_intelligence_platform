@@ -1,8 +1,8 @@
 import React, {useContext} from "react";
 import {ResumeContext} from "../../builder";
 
-const PersonalInformation = ({}) => {
-  const {resumeData, setResumeData, handleProfilePicture, handleChange} =
+const PersonalInformation = () => {
+  const {resumeData, handleProfilePicture, handleChange} =
     useContext(ResumeContext);
 
   return (

@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
 import {handleSocialMedia} from "../units/handleSocialMedia";
 import {ResumeContext} from "../../../../builder";
-import {removeLanguage} from "../../languages/utils/removeLanguage";
 import {BsTrash3} from "react-icons/bs";
 import {removeSocialMedia} from "../units/removeSocialMedia";
 

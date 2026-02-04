@@ -3,7 +3,7 @@ import {ResumeContext} from "../../../../builder";
 import SkillsGroup from "../components/SkillsGroup";
 
 const Skills = () => {
-  const {resumeData, setResumeData} = useContext(ResumeContext);
+  const {resumeData} = useContext(ResumeContext);
 
   return (
     <div>

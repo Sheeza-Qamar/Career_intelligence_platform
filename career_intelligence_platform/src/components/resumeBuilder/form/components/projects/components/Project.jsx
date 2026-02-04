@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
 import {handleProject} from "../utils/handleProject";
 import {ResumeContext} from "../../../../builder";
-import {removeLanguage} from "../../languages/utils/removeLanguage";
 import {BsTrash3} from "react-icons/bs";
 import {removeProject} from "../utils/removeProject";
 
