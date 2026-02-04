@@ -124,7 +124,12 @@ const response = await axios.post(`${NLP_SERVICE_URL.replace(/\/$/, '')}/extract
     });
   } catch (dbErr) {
     console.error('Resume insert/update error:', dbErr);
-    return res.status(500).json({ message: 'Failed to save resume.' });
+    // Log code for debugging (Vercel logs); don't expose to client
+    const code = dbErr.code || '';
+    const msg = code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || code === 'ENOTFOUND'
+      ? 'Database connection failed. Check DB_HOST, DB_PORT, and Aiven network access.'
+      : 'Failed to save resume.';
+    return res.status(500).json({ message: msg });
   }
 };
 

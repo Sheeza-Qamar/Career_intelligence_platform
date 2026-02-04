@@ -1,0 +1,24 @@
+import { MdAddCircle, MdRemoveCircle } from "react-icons/md";
+
+const FormButton = ({ size, remove, add }) => {
+
+    return (
+      <div className="flex-wrap-gap-2 mb-2">
+        <button type="button" onClick={add}
+          aria-label="Add"
+          className="p-2 text-white rounded text-xl" style={{ backgroundColor: '#1e3a8a' }}>
+          <MdAddCircle />
+        </button>
+        {
+          size > 0 &&
+          <button type="button" onClick={remove}
+            aria-label="Remove"
+            className="p-2 text-white rounded text-xl" style={{ backgroundColor: '#1e3a8a' }}>
+            <MdRemoveCircle />
+          </button>
+        }
+      </div>
+    )
+  }
+
+export default FormButton;

@@ -46,6 +46,10 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-left">
+        {/* Empty left section to maintain layout */}
+      </div>
+
+      <div className="navbar-center">
         <Link to="/" className="navbar-brand">
           <span className="navbar-mark">
             <img
@@ -58,15 +62,6 @@ const Navbar = () => {
             <span className="navbar-title">Career Intelligence</span>
             <span className="navbar-subtitle">Smart Resume Analyzer</span>
           </span>
-        </Link>
-      </div>
-
-      <div className="navbar-center">
-        <Link to="/upload" className="nav-link">
-          Resume Analysis
-        </Link>
-        <Link to="/" className="nav-link">
-          Job Apply
         </Link>
       </div>
 

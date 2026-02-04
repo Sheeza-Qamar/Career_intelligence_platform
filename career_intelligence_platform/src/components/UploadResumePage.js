@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 import { API_BASE } from '../config';
 
 const UploadResumePage = () => {
@@ -141,6 +142,7 @@ const UploadResumePage = () => {
   const showUpdate = user && hasResume;
   return (
     <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
+      <Sidebar />
       <Navbar />
 
       <main className="auth-main">

@@ -6,6 +6,8 @@ import SignupPage from './components/SignupPage';
 import UploadResumePage from './components/UploadResumePage';
 import AnalyzePage from './components/AnalyzePage';
 import AnalysisResultPage from './components/AnalysisResultPage';
+import ATSCompatibilityPage from './components/ATSCompatibilityPage';
+import ATSGeneratePage from './components/ATSGeneratePage';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
         <Route path="/upload" element={<UploadResumePage />} />
         <Route path="/analyze" element={<AnalyzePage />} />
         <Route path="/analysis/:id" element={<AnalysisResultPage />} />
+        <Route path="/ats-compatibility" element={<ATSCompatibilityPage />} />
+        <Route path="/ats-generate" element={<ATSGeneratePage />} />
       </Routes>
     </Router>
   );

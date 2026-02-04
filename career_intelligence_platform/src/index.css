@@ -1,13 +1,293 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    
+    body {
+        @apply font-[sans-serif];
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+            'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+            sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    code {
+        font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+            monospace;
+    }
+
+    ::-webkit-scrollbar {
+        @apply w-2.5 h-2.5;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-gray-200;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-gray-400;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-gray-500;
+    }
+
+    textarea, input:focus {
+        @apply focus:outline-none;
+    }
+
+    .ul-padding{
+        padding-inline-start: 0.9rem;
+    }
+
+    .ul-padding-none{
+        padding-inline-start: 0;
+    }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer components{
+    .pi{
+        @apply p-2 mb-2 text-black bg-white rounded text-[0.9rem];
+    }
+
+    .profileInput{
+        @apply pi file:border-0 file:text-white file:rounded-sm;
+    }
+    
+    .profileInput::file-selector-button {
+        background-color: #1e3a8a;
+    }
+
+    .flex-col-gap-2{
+        @apply flex flex-col gap-2;
+    }
+
+    .flex-wrap-gap-2{
+        @apply flex flex-wrap gap-2;
+    }
+
+    .other-input{
+        @apply p-2 mb-2 text-black bg-white rounded focus:placeholder-transparent;
+    }
+
+    .input-title{
+        @apply text-[1rem] text-white font-semibold;
+    }
+
+    .f-col{
+        @apply flex flex-col;
+    }
+
+    .grid-4{
+        @apply grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4;
+    }
+
+    .editable{
+        @apply hover:bg-gray-100 hover:cursor-text outline-none;
+    }
+
+}
+
+.name{
+    font-size: 20px;
+    font-weight: 700;
+    color: #000000;
+}
+
+.profession{
+    font-size: 16px;
+    font-weight: 500;
+    color: #000000;
+}
+
+.contact{
+    font-size: 14px;
+    font-weight: 400;
+    color: #000000;
+}
+
+.social-media{
+    font-size: 12px;
+    font-weight: 400;
+    color: #000000;
+}
+
+.section-title{
+    font-size: 16px;
+    font-weight: 700;
+    color: #000000;
+}
+
+.content{
+    font-size: 14px;
+    font-weight: 400;
+    color: #000000;
+}
+
+.sub-content{
+    font-size: 12px;
+    font-weight: 400;
+    color: #000000;
+}
+
+.i-bold{
+    font-weight: 700 !important;
+}
+
+@media print {
+    /* Hide everything except the resume preview */
+    body * {
+        visibility: hidden;
+    }
+    
+    .preview,
+    .preview * {
+        visibility: visible;
+    }
+    
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+    }
+
+    /* Force the preview to print flush to the top-left of the page */
+    .preview {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        background: white !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Ensure header starts at top; keep default alignment for header specifically */
+    .preview .f-col {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    /* Center the header (name/contact) when printing without affecting other .f-col usage */
+    .preview .resume-header {
+        align-items: center !important;
+        text-align: center !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+    }
+
+    /* Center social/contact row inside header */
+    .preview .resume-header .grid {
+        justify-items: center !important;
+        justify-content: center !important;
+        margin-top: 0.25rem !important;
+    }
+
+    .exclude-print {
+        display: none !important;
+    }
+
+    .rm-padding-print {
+        padding: 0 !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 5mm 10mm;
+    }
+
+    /* Ensure A4PageWrapper fits within page */
+    .preview > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Remove top padding from preview content */
+    .preview > div > div {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    /* Fix grid layout for print - ensure it fits */
+    .preview .grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 0.75rem !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Ensure columns don't overflow */
+    .preview .grid > div {
+        max-width: 100% !important;
+        overflow: visible !important;
+        word-wrap: break-word !important;
+    }
+
+    /* Fix bullet points for print */
+    .preview ul {
+        list-style-type: disc !important;
+        padding-left: 1.2rem !important;
+        margin: 0.5rem 0 !important;
+    }
+
+    .preview li {
+        margin: 0.25rem 0 !important;
+        padding-left: 0.25rem !important;
+        display: list-item !important;
+        list-style-position: outside !important;
+    }
+
+    /* Ensure ul-padding works in print */
+    .preview .ul-padding {
+        padding-left: 1.2rem !important;
+    }
+
+    /* Fix content spacing */
+    .preview .content {
+        line-height: 1.5 !important;
+    }
+
+    /* Fix A4PageWrapper width for print */
+    .preview .w-8\.5in {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .preview::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide browser's default header/footer */
+    @page {
+        @top-center {
+            content: "";
+        }
+        @bottom-center {
+            content: "";
+        }
+        @top-right {
+            content: "";
+        }
+        @bottom-right {
+            content: "";
+        }
+    }
+
+    /* Remove created by text */
+    .preview::after {
+        content: "" !important;
+        display: none !important;
+    }
 }

@@ -38,6 +38,10 @@ const uploadMiddleware = multer({
 });
 
 router.post('/upload', (req, res, next) => {
+  // Ensure /tmp/uploads exists on each request (Vercel serverless)
+  if (process.env.VERCEL && !fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
   uploadMiddleware.single('file')(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {

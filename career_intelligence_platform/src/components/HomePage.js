@@ -2,12 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../App.css';
 import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 
 const HomePage = () => {
   const logoPattern = `/web_logo.png`;
 
   return (
     <div className="app-root" style={{ '--logo-pattern': `url(${logoPattern})` }}>
+      <Sidebar />
       <Navbar />
 
       <main className="hero">

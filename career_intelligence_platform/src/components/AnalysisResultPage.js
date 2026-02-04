@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import '../App.css';
 import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 import { API_BASE } from '../config';
 
 const AnalysisResultPage = () => {
@@ -67,6 +68,7 @@ const AnalysisResultPage = () => {
   if (loading) {
     return (
       <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
+        <Sidebar />
         <Navbar />
         <main className="auth-main">
           <div className="auth-card">
@@ -80,6 +82,7 @@ const AnalysisResultPage = () => {
   if (error || !data) {
     return (
       <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
+        <Sidebar />
         <Navbar />
         <main className="auth-main">
           <div className="auth-card">
@@ -125,6 +128,7 @@ const AnalysisResultPage = () => {
 
   return (
     <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
+      <Sidebar />
       <Navbar />
 
       <main className="auth-main analysis-result-main">
