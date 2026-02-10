@@ -152,17 +152,48 @@ class ResumeParser:
             return standard_text, parsing_method, confidence
     
     def _extract_pdf_text(self, file_path: str) -> str:
-        """Extract text from PDF using pypdf"""
+        """Extract text from PDF.
+
+        Primary extractor: pypdf (fast and lightweight)
+        Fallback: pdfplumber if pypdf hits an encoding error or fails.
+        This makes the parser more robust to resumes that use
+        non-UTF-8 or unusual encodings.
+        """
         text = ""
+
+        # First try pypdf
         try:
             reader = PdfReader(file_path)
             for page in reader.pages:
                 page_text = page.extract_text()
                 if page_text:
                     text += page_text + "\n"
+            if text.strip():
+                return text
         except Exception as e:
-            raise Exception(f"Error parsing PDF: {str(e)}")
-        return text
+            # If pypdf fails, log and fall through to pdfplumber
+            # (FastAPI layer will surface the final error message)
+            parse_error_msg = str(e)
+        else:
+            parse_error_msg = "Empty text extracted from PDF via pypdf"
+
+        # Fallback: pdfplumber, which is often more tolerant of encodings
+        try:
+            import pdfplumber  # Local import to avoid hard dependency during tests
+
+            parts = []
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        parts.append(page_text)
+            fallback_text = "\n".join(parts).strip()
+            if fallback_text:
+                return fallback_text
+            raise Exception("No text could be extracted from PDF via pdfplumber fallback")
+        except Exception as e:
+            # If both extractors fail, raise a clear error
+            raise Exception(f"Error parsing PDF (pypdf: {parse_error_msg}; pdfplumber: {str(e)})")
     
     def _extract_docx_text(self, file_path: str) -> str:
         """Extract text from DOCX"""
