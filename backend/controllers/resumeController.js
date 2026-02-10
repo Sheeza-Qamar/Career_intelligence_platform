@@ -151,12 +151,18 @@ exports.upload = async (req, res) => {
       message: parsed_success ? 'Resume uploaded and text extracted.' : 'Resume uploaded; text extraction failed.',
     });
   } catch (dbErr) {
-    console.error('Resume insert/update error:', dbErr);
-    // Log code for debugging (Vercel logs); don't expose to client
     const code = dbErr.code || '';
-    const msg = code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || code === 'ENOTFOUND'
-      ? 'Database connection failed. Check DB_HOST, DB_PORT, and Aiven network access.'
-      : 'Failed to save resume.';
+    const errMsg = dbErr.message || '';
+    console.error('Resume insert/update error:', code, errMsg);
+    // User-friendly message; full code/message visible in Vercel logs
+    let msg = 'Failed to save resume.';
+    if (code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || code === 'ENOTFOUND') {
+      msg = 'Database unreachable. Set DB_HOST, DB_PORT on Vercel and allow Vercel IPs (or 0.0.0.0/0) in your DB host.';
+    } else if (code === 'ER_ACCESS_DENIED_ERROR' || errMsg.includes('Access denied')) {
+      msg = 'Database credentials invalid. Check DB_USER, DB_PASSWORD (and DB_NAME) on Vercel.';
+    } else if (code === 'ER_BAD_DB_ERROR') {
+      msg = 'Database name invalid. Check DB_NAME on Vercel.';
+    }
     return res.status(500).json({ message: msg });
   }
 };
