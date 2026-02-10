@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../App.css';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
 import { API_BASE } from '../config';
+import { getCachedAnalysis, setCachedAnalysis } from '../utils/jobFitnessAnalysisCache';
 
 const AnalyzePage = () => {
   const navigate = useNavigate();
@@ -74,7 +73,26 @@ const AnalyzePage = () => {
       }
     };
     fetchJobRoles();
+    
+    // Load cached job role selection
+    try {
+      const cachedRoleId = localStorage.getItem('lastSelectedJobRoleId');
+      const cachedRoleQuery = localStorage.getItem('lastSelectedJobRoleQuery');
+      if (cachedRoleId && cachedRoleQuery) {
+        setSelectedJobRoleId(cachedRoleId);
+        setJobRoleQuery(cachedRoleQuery);
+      }
+    } catch (e) {
+      console.warn('Failed to load cached job role:', e);
+    }
   }, []);
+
+  // If user has a resume and a valid cached analysis (< 7 days, same resume), show that result
+  useEffect(() => {
+    if (resumeLoading || !resumeId) return;
+    const cached = getCachedAnalysis(resumeId);
+    if (cached?.analysisId) navigate(`/analysis/${cached.analysisId}`, { replace: true });
+  }, [resumeId, resumeLoading, navigate]);
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
@@ -90,12 +108,26 @@ const AnalyzePage = () => {
         job_role_id: Number(selectedJobRoleId),
       };
       if (user?.id) payload.user_id = user.id;
-      const res = await axios.post(`${API_BASE}/api/analyses`, payload, { timeout: 60000 });
+      const res = await axios.post(`${API_BASE}/api/analyses`, payload, { timeout: 180000 }); // 3 min (RAG + embeddings can be slow)
       const analysisId = res.data?.analysis_id;
+      
+      // Persist analysis so it stays when user navigates away (reset on new CV or after 7 days)
+      if (analysisId && resumeId) setCachedAnalysis(analysisId, resumeId);
+      
+      try {
+        localStorage.setItem('lastSelectedJobRoleId', selectedJobRoleId);
+        localStorage.setItem('lastSelectedJobRoleQuery', jobRoleQuery);
+      } catch (e) {
+        console.warn('Failed to cache job role:', e);
+      }
+      
       if (analysisId) navigate(`/analysis/${analysisId}`);
       else setError('Analysis completed but no result id returned.');
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Analysis failed.');
+      const msg = err.code === 'ECONNABORTED'
+        ? 'Analysis is taking longer than expected. Please try again (it may take 1–2 minutes).'
+        : (err.response?.data?.message || err.message || 'Analysis failed.');
+      setError(msg);
     } finally {
       setAnalyzeLoading(false);
     }
@@ -103,9 +135,7 @@ const AnalyzePage = () => {
 
   if (resumeLoading) {
     return (
-      <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-        <Sidebar />
-        <Navbar />
+      <div className="app-root auth-page landing-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
         <main className="auth-main">
           <div className="auth-card">
             <p className="auth-subtitle">Loading...</p>
@@ -117,9 +147,7 @@ const AnalyzePage = () => {
 
   if (!resumeId) {
     return (
-      <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-        <Sidebar />
-        <Navbar />
+      <div className="app-root auth-page landing-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
         <main className="auth-main">
           <div className="auth-card">
             <p className="auth-subtitle">Please upload a resume first.</p>
@@ -133,10 +161,7 @@ const AnalyzePage = () => {
   }
 
   return (
-    <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-      <Sidebar />
-      <Navbar />
-
+    <div className="app-root auth-page landing-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
       <main className="auth-main">
         <div className="auth-card upload-card">
           <h1 className="auth-title upload-title">Choose job role</h1>
@@ -163,7 +188,18 @@ const AnalyzePage = () => {
                           (role.name || role.title || '').trim().toLowerCase() ===
                           value.trim().toLowerCase()
                       );
-                      setSelectedJobRoleId(match ? String(match.id) : '');
+                      const roleId = match ? String(match.id) : '';
+                      setSelectedJobRoleId(roleId);
+                      
+                      // Cache the selection
+                      try {
+                        if (roleId) {
+                          localStorage.setItem('lastSelectedJobRoleId', roleId);
+                          localStorage.setItem('lastSelectedJobRoleQuery', value);
+                        }
+                      } catch (e) {
+                        console.warn('Failed to cache job role:', e);
+                      }
                     }}
                   />
                   <datalist id="analyze-job-role-options">
@@ -181,8 +217,13 @@ const AnalyzePage = () => {
                 className="btn btn-primary auth-submit"
                 disabled={!selectedJobRoleId || analyzeLoading}
               >
-                {analyzeLoading ? 'Analyzing...' : 'Check Your Job Readiness'}
+                {analyzeLoading ? 'Analyzing... (may take 1–2 min)' : 'Check Your Job Readiness'}
               </button>
+              {analyzeLoading && (
+                <p className="auth-subtitle" style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+                  Please wait. Do not refresh.
+                </p>
+              )}
             </div>
           </form>
         </div>

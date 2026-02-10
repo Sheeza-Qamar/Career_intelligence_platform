@@ -27,11 +27,12 @@ async function analyzeWithGeminiRAG(resumeText, jobRoleSkills, jobRoleTitle) {
 
   const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
   
-  // Try multiple models in order of preference (if quota issues)
+  // Try multiple models in order of preference (with retry logic for 503 errors)
+  // Order: Most stable first, then fallbacks
   const modelNames = [
-    'gemini-3-flash-preview',  // User requested
-    'gemini-1.5-flash',         // Fallback 1
-    'gemini-1.5-pro'            // Fallback 2
+    'gemini-1.5-flash',         // Most stable and fast (recommended)
+    'gemini-1.5-pro',           // Fallback 1 (more capable but slower)
+    'gemini-3-flash-preview',  // Fallback 2 (if available, experimental)
   ];
 
   let lastError = null;
@@ -41,7 +42,28 @@ async function analyzeWithGeminiRAG(resumeText, jobRoleSkills, jobRoleTitle) {
       const model = genAI.getGenerativeModel({ model: modelName });
       console.log(`🔄 Trying model: ${modelName}`);
       
-      return await performAnalysis(model, resumeText, jobRoleSkills, jobRoleTitle);
+      // Retry logic for 503 (overloaded) errors
+      let retries = 2; // Try up to 3 times total
+      let attempt = 0;
+      
+      while (attempt <= retries) {
+        try {
+          return await performAnalysis(model, resumeText, jobRoleSkills, jobRoleTitle);
+        } catch (retryError) {
+          attempt++;
+          
+          // If 503 error (overloaded) and we have retries left, wait and retry
+          if (retryError.message && retryError.message.includes('overloaded') && attempt <= retries) {
+            const waitTime = attempt * 2000; // 2s, 4s, 6s
+            console.log(`⏳ Model ${modelName} overloaded, retrying in ${waitTime/1000}s... (attempt ${attempt}/${retries + 1})`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+          
+          // If not a retry-able error, throw immediately
+          throw retryError;
+        }
+      }
     } catch (error) {
       lastError = error;
       console.warn(`⚠️  Model ${modelName} failed:`, error.message);
@@ -52,17 +74,26 @@ async function analyzeWithGeminiRAG(resumeText, jobRoleSkills, jobRoleTitle) {
       }
       
       // If model not found, try next model
-      if (error.message && error.message.includes('not found')) {
+      if (error.message && (error.message.includes('not found') || error.message.includes('404'))) {
         continue;
       }
       
-      // For other errors, break and throw
-      break;
+      // If overloaded (503) and we've tried all retries, try next model
+      if (error.message && error.message.includes('overloaded')) {
+        continue;
+      }
+      
+      // For other errors, try next model
+      continue;
     }
   }
   
-  // If all models failed, throw the last error
-  throw lastError || new Error('All Gemini models failed');
+  // If all models failed, provide helpful error message
+  if (lastError && lastError.message && lastError.message.includes('overloaded')) {
+    throw new Error('Gemini models are currently overloaded. Please try again in a few moments. The service is experiencing high traffic.');
+  }
+  
+  throw lastError || new Error('All Gemini models failed. Please check your API key and try again.');
 }
 
 async function performAnalysis(model, resumeText, jobRoleSkills, jobRoleTitle) {
@@ -370,8 +401,10 @@ Provide ONLY valid JSON, no additional text or explanation.`;
       throw new Error(`Gemini API key issue: ${error.message}. Please check your API key in .env file or contact support.`);
     } else if (error.message && error.message.includes('quota')) {
       throw new Error(`Gemini API quota exceeded: ${error.message}. Please check your billing/quota at https://ai.google.dev/`);
+    } else if (error.message && error.message.includes('overloaded')) {
+      throw new Error(`Gemini models are currently overloaded due to high traffic. Please try again in a few moments.`);
     } else if (error.message && error.message.includes('model')) {
-      throw new Error(`Gemini model not available: ${error.message}. Trying to use gemini-1.5-flash.`);
+      throw new Error(`Gemini model not available: ${error.message}. Please try again later.`);
     }
     
     throw new Error(`Gemini RAG analysis failed: ${error.message || 'Unknown error'}`);

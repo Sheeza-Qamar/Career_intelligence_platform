@@ -10,6 +10,8 @@ const authRoutes = require('../routes/authRoutes');
 const resumeRoutes = require('../routes/resumeRoutes');
 const jobRoleRoutes = require('../routes/jobRoleRoutes');
 const analysisRoutes = require('../routes/analysisRoutes');
+const atsRoutes = require('../routes/atsRoutes');
+const jobSearchRoutes = require('../routes/jobSearchRoutes');
 
 const app = express();
 
@@ -29,6 +31,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/job-roles', jobRoleRoutes);
 app.use('/api/analyses', analysisRoutes);
+app.use('/api/ats', atsRoutes);
+app.use('/api/job-search', jobSearchRoutes);
 
 module.exports = app;
 

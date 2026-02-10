@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
 import { API_BASE } from '../config';
 
 const LoginPage = () => {
@@ -11,6 +9,7 @@ const LoginPage = () => {
   const logoPattern = `/web_logo.png`;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -52,10 +51,13 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-      <Sidebar />
-      <Navbar />
-
+    <div 
+      className="app-root auth-page login-page-bg" 
+      style={{ 
+        '--logo-pattern': `url(${logoPattern})`,
+        backgroundImage: 'url(/career.png)'
+      }}
+    >
       <main className="auth-main">
         <div className="auth-card">
           <h1 className="auth-title">Login</h1>
@@ -75,13 +77,23 @@ const LoginPage = () => {
 
             <label className="auth-label">
               Password
-              <input
-                type="password"
-                className="auth-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="auth-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  &#128065;
+                </button>
+              </div>
             </label>
 
             {error && <p className="auth-error">{error}</p>}

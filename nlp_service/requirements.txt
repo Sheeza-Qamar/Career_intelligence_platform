@@ -2,3 +2,12 @@ fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 pdfplumber>=0.10.0
 python-multipart>=0.0.6
+pypdf>=4.0.1
+python-docx>=1.1.0
+pydantic>=2.10.0
+reportlab>=4.1.0
+
+# OCR dependencies for scanned PDF support (optional)
+pytesseract>=0.3.10
+pdf2image>=1.17.0
+Pillow>=10.0.0

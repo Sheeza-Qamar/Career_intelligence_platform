@@ -8,6 +8,11 @@ backend/uploads/
 .env.local
 .env.*.local
 
+# Python bytecode / cache
+__pycache__/
+**/__pycache__/
+*.pyc
+
 # Logs and OS
 *.log
 .DS_Store

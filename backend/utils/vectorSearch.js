@@ -7,42 +7,47 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBHRUpqJmXTWD8ingi0OdnQVEz2RK-Oqd8';
 
+// text-embedding-004 returns 404 on v1beta. Use supported embedding models.
+// gemini-embedding-001 is the current Gemini API embedding model.
+const EMBEDDING_MODELS = ['text-embedding-005', 'embedding-001', 'gemini-embedding-001'];
+
 /**
  * Generate embedding using Gemini
  * @param {string} text - Text to embed
  * @returns {Promise<number[]>} Embedding vector
  */
 async function generateEmbedding(text) {
-  try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    
-    // Use Gemini embedding model
-    // Note: @google/generative-ai SDK uses embedContent method
-    const result = await genAI.embedContent({
-      model: 'text-embedding-004',
-      content: { parts: [{ text: text }] }
-    });
-    
-    // Extract embedding values
-    if (result.embedding && result.embedding.values) {
-      return result.embedding.values;
-    } else if (Array.isArray(result.embedding)) {
-      return result.embedding;
-    } else {
-      throw new Error('Unexpected embedding format');
-    }
-  } catch (error) {
-    console.error('Embedding generation error:', error.message);
-    // Try alternative method if first fails
+  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  let lastError;
+
+  for (const modelName of EMBEDDING_MODELS) {
     try {
-      const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: 'text-embedding-004' });
+      // embedContent lives on GenerativeModel, not on the client
+      const model = genAI.getGenerativeModel({ model: modelName });
       const result = await model.embedContent(text);
-      return result.embedding.values || result.embedding;
-    } catch (fallbackError) {
-      throw new Error(`Failed to generate embedding: ${error.message}. Fallback also failed: ${fallbackError.message}`);
+
+      if (result?.embedding?.values && Array.isArray(result.embedding.values)) {
+        return result.embedding.values;
+      }
+      if (Array.isArray(result?.embedding)) {
+        return result.embedding;
+      }
+      throw new Error('Unexpected embedding format');
+    } catch (error) {
+      lastError = error;
+      const msg = (error?.message || (typeof error?.toString === 'function' ? error.toString() : '')) + (error?.response?.data ? JSON.stringify(error.response.data) : '');
+      if (/404|not found|not supported|embedContent/i.test(msg)) {
+        continue; // try next model
+      }
+      throw error;
     }
   }
+
+  throw new Error(
+    `Failed to generate embedding. Tried models: ${EMBEDDING_MODELS.join(', ')}. ` +
+    `Last error: ${lastError?.message || 'Unknown'}. ` +
+    `Use a valid embedding model (e.g. text-embedding-005 or embedding-001) and check GEMINI_API_KEY.`
+  );
 }
 
 /**

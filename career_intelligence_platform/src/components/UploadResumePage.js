@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
 import { API_BASE } from '../config';
+import { clearCachedAnalysis } from '../utils/jobFitnessAnalysisCache';
 
 const UploadResumePage = () => {
   const navigate = useNavigate();
@@ -112,6 +111,8 @@ const UploadResumePage = () => {
       const updated = res.data?.updated;
       setResumeId(id);
       setMyResumeFilename(file?.name || myResumeFilename);
+      // New CV uploaded: clear persisted Job Fitness result so user sees fresh flow
+      clearCachedAnalysis();
       setSuccess(
         id
           ? updated
@@ -141,17 +142,20 @@ const UploadResumePage = () => {
   const hasResume = resumeId != null && myResumeFilename;
   const showUpdate = user && hasResume;
   return (
-    <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-      <Sidebar />
-      <Navbar />
-
+    <div 
+      className="app-root auth-page login-page-bg" 
+      style={{ 
+        '--logo-pattern': `url(${logoPattern})`,
+        backgroundImage: 'url(/upload.png)'
+      }}
+    >
       <main className="auth-main">
         <div className="auth-card upload-card">
           <h1 className="auth-title upload-title">Resume</h1>
           <p className="auth-subtitle">
             {user
-              ? 'One resume per account. Upload or replace your PDF for analysis.'
-              : 'Upload a PDF resume. We\'ll extract text and save it for analysis.'}
+              ? 'Upload or replace your PDF resume for analysis.'
+              : 'Upload a PDF resume for text extraction and analysis.'}
           </p>
 
           {meLoading && user && (
@@ -210,20 +214,6 @@ const UploadResumePage = () => {
                         ? 'Upload Resume'
                         : 'Choose PDF file'}
                 </button>
-
-                {hasResume && (
-                  <button
-                    type="button"
-                    className="btn btn-primary auth-submit upload-next-btn"
-                    onClick={() =>
-                      navigate('/analyze', {
-                        state: { resumeId, myResumeFilename },
-                      })
-                    }
-                  >
-                    Next
-                  </button>
-                )}
               </div>
             </form>
           )}

@@ -1,31 +1,31 @@
 const DefaultResumeData = {
-  name: "MARCUS HALL",
-  position: "Developer",
-  contactInformation: "+1-555-0100",
-  email: "beddylea@gmail.com",
-  address: "San Francisco, CA",
+  name: "SHEEZA QAMAR",
+  position: "Software Engineer",
+  contactInformation: "+92-300-1234567",
+  email: "ssheezaqamar@gmail.com",
+  address: "Lahore Pakistan",
   profilePicture: "",
   socialMedia: [
     {
       socialMedia: "Github",
-      link: "github.com//bedivere-lea",
+      link: "github.com//Sheeza-Qamar",
     },
     {
       socialMedia: "LinkedIn",
-      link: "linkedin.com/in/bedivere-lea",
+      link: "linkedin.com/in/sheeza-qamar",
     },
     {
       socialMedia: "Website",
-      link: "bedivere-lea.github.io",
+      link: "sheeza-portfolio.vercel.app",
     },
   ],
   summary: "Resourceful Developer with 11 years of experience in designing and developing user interfaces, testing and training employees. Skilled at utilizing a wide variety of tools and programs to provide effective applications.",
   education: [
     {
       "school": "Bachelor of Computer Science",
-      "degree": "New York University",
-      "startYear": "2020-08-20",
-      "endYear": "2024-07-01"
+      "degree": "Comsats University Lahore",
+      "startYear": "2022-02-14",
+      "endYear": "2026-12-01"
     },
   ],
   workExperience: [

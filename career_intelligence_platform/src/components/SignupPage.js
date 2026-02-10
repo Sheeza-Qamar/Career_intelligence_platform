@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../App.css';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
 import { API_BASE } from '../config';
 
 const SignupPage = () => {
@@ -79,10 +77,13 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-      <Sidebar />
-      <Navbar />
-
+    <div 
+      className="app-root auth-page login-page-bg" 
+      style={{ 
+        '--logo-pattern': `url(${logoPattern})`,
+        backgroundImage: 'url(/signup.png)'
+      }}
+    >
       <main className="auth-main">
         <div className="auth-card">
           <h1 className="auth-title">Sign up</h1>

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, memo } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import '../App.css';
 
-const Navbar = () => {
+const Navbar = memo(() => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -44,47 +44,47 @@ const Navbar = () => {
   const firstInitial = displayName ? displayName.trim().charAt(0).toUpperCase() : '';
 
   return (
-    <nav className="navbar">
-      <div className="navbar-left">
-        {/* Empty left section to maintain layout */}
-      </div>
-
-      <div className="navbar-center">
-        <Link to="/" className="navbar-brand">
-          <span className="navbar-mark">
+    <nav className="landing-nav">
+      <div className="landing-nav-container">
+        <Link to="/" className="landing-nav-logo">
+          <span className="landing-nav-mark">
             <img
               src="/web_logo.png"
               alt="Career Intelligence logo"
-              className="navbar-logo-image"
+              className="landing-nav-logo-image"
             />
           </span>
-          <span className="navbar-brand-text">
-            <span className="navbar-title">Career Intelligence</span>
-            <span className="navbar-subtitle">Smart Resume Analyzer</span>
+          <span className="landing-nav-brand-text">
+            <span className="landing-nav-title">Career Intelligence</span>
+            <span className="landing-nav-subtitle">Smart Resume Analyzer</span>
           </span>
         </Link>
-      </div>
-
-      <div className="navbar-right">
+        <div className="landing-nav-links">
+          <NavLink to="/upload" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Upload Resume</NavLink>
+          <NavLink to="/analyze" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Job Fitness</NavLink>
+          <NavLink to="/ats-compatibility" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>ATS Compatibility</NavLink>
+          <NavLink to="/ats-generate" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Generate ATS Resume</NavLink>
+          <NavLink to="/job-search" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Find Jobs</NavLink>
+        </div>
         {!user && (
-          <>
-            <Link to="/login" className="btn btn-ghost">
+          <div className="landing-nav-auth-buttons">
+            <Link to="/login" className="landing-nav-link landing-nav-link-btn">
               Login
             </Link>
-            <Link to="/signup" className="btn btn-primary">
+            <Link to="/signup" className="landing-cta-nav-btn">
               Sign up
             </Link>
-          </>
+          </div>
         )}
 
         {user && (
-          <div className="navbar-user">
-            <div className="avatar-circle">{firstInitial}</div>
-            <div className="navbar-user-info">
-              <span className="navbar-username">{displayName}</span>
+          <div className="landing-nav-user">
+            <div className="landing-avatar-circle">{firstInitial}</div>
+            <div className="landing-nav-user-info">
+              <span className="landing-nav-username">{displayName}</span>
               <button
                 type="button"
-                className="navbar-logout"
+                className="landing-nav-logout"
                 onClick={handleLogout}
               >
                 Logout
@@ -95,7 +95,9 @@ const Navbar = () => {
       </div>
     </nav>
   );
-};
+});
+
+Navbar.displayName = 'Navbar';
 
 export default Navbar;
 

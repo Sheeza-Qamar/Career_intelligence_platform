@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import '../App.css';
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
 import { API_BASE } from '../config';
+import { setCachedAnalysis } from '../utils/jobFitnessAnalysisCache';
 
 const AnalysisResultPage = () => {
   const { id } = useParams();
@@ -49,8 +48,22 @@ const AnalysisResultPage = () => {
         const res = await axios.get(`${API_BASE}/api/analyses/${id}`);
         if (!cancelled) {
           setData(res.data);
-          setSelectedJobRoleId(res.data.job_role_id != null ? String(res.data.job_role_id) : '');
-          setJobRoleQuery(res.data.job_role_title || '');
+          const roleId = res.data.job_role_id != null ? String(res.data.job_role_id) : '';
+          const roleTitle = res.data.job_role_title || '';
+          setSelectedJobRoleId(roleId);
+          setJobRoleQuery(roleTitle);
+          // Persist this analysis so it stays when user navigates away (reset on new CV or 7 days)
+          if (res.data.id != null && res.data.resume_id != null) {
+            setCachedAnalysis(String(res.data.id), res.data.resume_id);
+          }
+          try {
+            if (roleId && roleTitle) {
+              localStorage.setItem('lastSelectedJobRoleId', roleId);
+              localStorage.setItem('lastSelectedJobRoleQuery', roleTitle);
+            }
+          } catch (e) {
+            console.warn('Failed to cache job role:', e);
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -63,13 +76,33 @@ const AnalysisResultPage = () => {
     fetchAnalysis();
     return () => { cancelled = true; };
   }, [id]);
+  
+  // Load cached job role when job roles are fetched (for "Analyze for another job role" section)
+  useEffect(() => {
+    if (jobRoles.length > 0 && !jobRoleQuery) {
+      try {
+        const cachedRoleId = localStorage.getItem('lastSelectedJobRoleId');
+        const cachedRoleQuery = localStorage.getItem('lastSelectedJobRoleQuery');
+        if (cachedRoleId && cachedRoleQuery) {
+          // Verify the cached role still exists in job roles list
+          const match = jobRoles.find(
+            (role) => String(role.id) === cachedRoleId
+          );
+          if (match) {
+            setSelectedJobRoleId(cachedRoleId);
+            setJobRoleQuery(cachedRoleQuery);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load cached job role:', e);
+      }
+    }
+  }, [jobRoles, jobRoleQuery]);
 
 
   if (loading) {
     return (
       <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-        <Sidebar />
-        <Navbar />
         <main className="auth-main">
           <div className="auth-card">
             <p className="auth-subtitle">Loading analysis...</p>
@@ -82,8 +115,6 @@ const AnalysisResultPage = () => {
   if (error || !data) {
     return (
       <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-        <Sidebar />
-        <Navbar />
         <main className="auth-main">
           <div className="auth-card">
             <p className="auth-error">{error || 'Analysis not found.'}</p>
@@ -107,9 +138,21 @@ const AnalysisResultPage = () => {
         job_role_id: Number(selectedJobRoleId),
       };
       if (user?.id) payload.user_id = user.id;
-      const res = await axios.post(`${API_BASE}/api/analyses`, payload, { timeout: 60000 });
+      const res = await axios.post(`${API_BASE}/api/analyses`, payload, { timeout: 180000 }); // 3 min (RAG + embeddings can be slow)
       const analysisId = res.data?.analysis_id;
-      if (analysisId) navigate(`/analysis/${analysisId}`);
+      
+      // Update cache with successful analysis
+      try {
+        localStorage.setItem('lastSelectedJobRoleId', selectedJobRoleId);
+        localStorage.setItem('lastSelectedJobRoleQuery', jobRoleQuery);
+      } catch (e) {
+        console.warn('Failed to cache job role:', e);
+      }
+      
+      if (analysisId) {
+        if (data?.resume_id) setCachedAnalysis(analysisId, data.resume_id);
+        navigate(`/analysis/${analysisId}`);
+      }
     } catch (err) {
       setReAnalyzeError(err.response?.data?.message || err.message || 'Analysis failed.');
     } finally {
@@ -128,9 +171,6 @@ const AnalysisResultPage = () => {
 
   return (
     <div className="app-root auth-page" style={{ '--logo-pattern': `url(${logoPattern})` }}>
-      <Sidebar />
-      <Navbar />
-
       <main className="auth-main analysis-result-main">
         {/* Job Role Selector - Separate Card */}
         <div className="analysis-section-card">
@@ -152,7 +192,18 @@ const AnalysisResultPage = () => {
                         (role.name || role.title || '').trim().toLowerCase() ===
                         value.trim().toLowerCase()
                     );
-                    setSelectedJobRoleId(match ? String(match.id) : '');
+                    const roleId = match ? String(match.id) : '';
+                    setSelectedJobRoleId(roleId);
+                    
+                    // Cache the selection
+                    try {
+                      if (roleId) {
+                        localStorage.setItem('lastSelectedJobRoleId', roleId);
+                        localStorage.setItem('lastSelectedJobRoleQuery', value);
+                      }
+                    } catch (e) {
+                      console.warn('Failed to cache job role:', e);
+                    }
                   }}
                 />
                 <datalist id="analysis-job-role-options">
