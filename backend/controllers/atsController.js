@@ -64,12 +64,13 @@ exports.analyzeATS = async (req, res) => {
 
     // Call ATS analysis service
     try {
-      // Normalize base URL to avoid double /api or trailing slash issues.
-      // Convention: NLP_SERVICE_URL should point to the base API root,
-      // e.g. https://your-nlp-service.vercel.app/api
+      // Convention: NLP_SERVICE_URL should point to the base host/root,
+      // e.g. http://localhost:8000 or https://your-nlp-service.vercel.app
+      // We always call the /api/analyze endpoint on that host.
       const baseUrl = (ATS_SERVICE_URL || '').replace(/\/$/, '');
+      const atsUrl = `${baseUrl}/api/analyze`;
 
-      const response = await axios.post(`${baseUrl}/analyze`, form, {
+      const response = await axios.post(atsUrl, form, {
         headers: form.getHeaders(),
         maxBodyLength: Infinity,
         maxContentLength: Infinity,

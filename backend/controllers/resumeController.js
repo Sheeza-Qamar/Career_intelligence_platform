@@ -106,7 +106,13 @@ exports.upload = async (req, res) => {
     console.error('Cloudinary upload error:', err.message || err);
   }
 
-  // Store Cloudinary URL in file_url column
+  // Resume storage requires Cloudinary; do not save if upload failed
+  if (!cloudinaryUrl) {
+    return res.status(503).json({
+      message: 'Resume could not be saved. Check that CLOUDINARY_URL (or Cloud name, API key, API secret) is set correctly in backend environment and try again.',
+    });
+  }
+
   const file_url = cloudinaryUrl;
 
   try {
