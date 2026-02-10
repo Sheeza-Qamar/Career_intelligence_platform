@@ -3,6 +3,7 @@ const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
 const db = require('../db');
+const cloudinary = require('../utils/cloudinaryClient');
 const { parseResumeText } = require('../utils/resumeParser');
 
 const connection = db.promise();
@@ -55,6 +56,7 @@ exports.upload = async (req, res) => {
 
   let extractedText = '';
   let parsed_success = 0;
+  let cloudinaryUrl = null;
 
   try {
     const form = new FormData();
@@ -79,7 +81,30 @@ const response = await axios.post(`${NLP_SERVICE_URL.replace(/\/$/, '')}/extract
     console.error('NLP extract-text error:', err.message || err);
   }
 
-  const file_url = path.basename(filePath);
+  // Upload the PDF to Cloudinary so we don't depend on local filesystem.
+  // Use "raw" resource_type to store the file as-is.
+  try {
+    const uploadResult = await cloudinary.uploader.upload(filePath, {
+      resource_type: 'raw',
+      folder: 'resumes',
+      public_id: `${user_id || 'anon'}-${Date.now()}`,
+    });
+    cloudinaryUrl = uploadResult.secure_url;
+  } catch (err) {
+    console.error('Cloudinary upload error:', err.message || err);
+  }
+
+  // Best-effort cleanup of local temp file
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (e) {
+    console.warn('Could not delete local resume file:', e.message);
+  }
+
+  // Store Cloudinary URL in file_url column
+  const file_url = cloudinaryUrl || path.basename(filePath);
 
   try {
     if (user_id) {
@@ -89,14 +114,8 @@ const response = await axios.post(`${NLP_SERVICE_URL.replace(/\/$/, '')}/extract
       );
       if (existing.length > 0) {
         const oldFileUrl = existing[0].file_url;
-        if (oldFileUrl) {
-          const oldPath = path.join(uploadsDir, oldFileUrl);
-          try {
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-          } catch (e) {
-            console.warn('Could not delete old resume file:', e.message);
-          }
-        }
+        // If old file_url was a Cloudinary URL, we could optionally delete it via API.
+        // Skip deletion for now to avoid accidentally removing user files.
         await connection.query(
           `UPDATE resumes SET original_filename = ?, file_url = ?, extracted_text = ?, parsed_success = ?
            WHERE id = ?`,

@@ -1,11 +1,8 @@
-const fs = require('fs');
-const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
 const db = require('../db');
 
 const connection = db.promise();
-const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', 'uploads');
 
 // ATS Service URL - use NLP service (same as extract-text service)
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
@@ -42,16 +39,25 @@ exports.analyzeATS = async (req, res) => {
       return res.status(403).json({ message: 'Access denied.' });
     }
 
-    // Get file path
-    const filePath = path.join(uploadsDir, resume.file_url);
+    // Resume file_url now stores a Cloudinary URL (or other remote URL).
+    // Download the file as a stream and forward it to the ATS service.
+    const fileUrl = resume.file_url;
+    if (!fileUrl) {
+      return res.status(404).json({ message: 'Resume file URL is missing.' });
+    }
 
-    if (!fs.existsSync(filePath)) {
+    let fileStream;
+    try {
+      const fileResponse = await axios.get(fileUrl, { responseType: 'stream' });
+      fileStream = fileResponse.data;
+    } catch (downloadErr) {
+      console.error('Failed to download resume from Cloudinary/remote URL:', downloadErr.message || downloadErr);
       return res.status(404).json({ message: 'Resume file not found on server.' });
     }
 
     // Prepare file for ATS service
     const form = new FormData();
-    form.append('file', fs.createReadStream(filePath), {
+    form.append('file', fileStream, {
       filename: resume.original_filename || 'resume.pdf',
       contentType: 'application/pdf',
     });
