@@ -843,6 +843,58 @@ body::-webkit-scrollbar {
   color: #9ca3af;
 }
 
+/* Job Fitness waiting panel (AnalyzePage) */
+.analysis-wait-panel {
+  margin-top: 1rem;
+  padding: 0.9rem 0.9rem 1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: radial-gradient(circle at top left, rgba(79, 70, 229, 0.18), transparent 55%),
+    rgba(15, 23, 42, 0.9);
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.analysis-wait-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #6366f1;
+  animation: analysis-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.analysis-wait-text {
+  flex: 1;
+}
+
+.analysis-wait-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.analysis-wait-steps {
+  margin: 0 0 0.4rem;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: #cbd5f5;
+  line-height: 1.5;
+}
+
+.analysis-wait-steps li + li {
+  margin-top: 0.15rem;
+}
+
+.analysis-wait-note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
 @keyframes analysis-spin {
   to {
     transform: rotate(360deg);

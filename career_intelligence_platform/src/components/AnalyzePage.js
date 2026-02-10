@@ -220,9 +220,18 @@ const AnalyzePage = () => {
                 {analyzeLoading ? 'Analyzing... (may take 1–2 min)' : 'Check Your Job Readiness'}
               </button>
               {analyzeLoading && (
-                <p className="auth-subtitle" style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#9ca3af' }}>
-                  Please wait. Do not refresh.
-                </p>
+                <div className="analysis-wait-panel">
+                  <div className="analysis-wait-spinner" />
+                  <div className="analysis-wait-text">
+                    <p className="analysis-wait-title">Crafting your Job Fitness report…</p>
+                    <ul className="analysis-wait-steps">
+                      <li>Reading your resume and matching skills to the role.</li>
+                      <li>Scoring your profile and identifying gaps.</li>
+                      <li>Designing a personalized learning roadmap.</li>
+                    </ul>
+                    <p className="analysis-wait-note">You can relax for a moment — no need to refresh this page.</p>
+                  </div>
+                </div>
               )}
             </div>
           </form>
