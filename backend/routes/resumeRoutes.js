@@ -1,7 +1,5 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const requireAuth = require('../middleware/authMiddleware');
 const { getMyResume, upload } = require('../controllers/resumeController');
 
@@ -11,21 +9,8 @@ router.get('/me', requireAuth, (req, res, next) => {
   getMyResume(req, res).catch(next);
 });
 
-// On Vercel use /tmp (writable); otherwise use local uploads folder
-const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.pdf';
-    const base = path.basename(file.originalname, ext).replace(/\s+/g, '_').slice(0, 80);
-    const unique = `${Date.now()}-${base}${ext}`;
-    cb(null, unique);
-  },
-});
+// Use in-memory storage and upload directly to Cloudinary in the controller.
+const storage = multer.memoryStorage();
 
 const uploadMiddleware = multer({
   storage,
@@ -38,10 +23,6 @@ const uploadMiddleware = multer({
 });
 
 router.post('/upload', (req, res, next) => {
-  // Ensure /tmp/uploads exists on each request (Vercel serverless)
-  if (process.env.VERCEL && !fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
   uploadMiddleware.single('file')(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {

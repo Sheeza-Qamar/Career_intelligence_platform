@@ -1,14 +1,11 @@
-const fs = require('fs');
-const path = require('path');
 const axios = require('axios');
 const FormData = require('form-data');
 const db = require('../db');
 const cloudinary = require('../utils/cloudinaryClient');
 const { parseResumeText } = require('../utils/resumeParser');
+const { Readable } = require('stream');
 
 const connection = db.promise();
-// On Vercel use /tmp (writable); otherwise use local uploads folder
-const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', 'uploads');
 
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
 
@@ -48,7 +45,7 @@ exports.upload = async (req, res) => {
   }
 
   const originalFilename = req.file.originalname || 'resume.pdf';
-  const filePath = req.file.path;
+  const fileBuffer = req.file.buffer;
   const user_id = req.body.user_id ? parseInt(req.body.user_id, 10) : null;
   if (req.body.user_id && isNaN(user_id)) {
     return res.status(400).json({ message: 'Invalid user_id.' });
@@ -58,20 +55,25 @@ exports.upload = async (req, res) => {
   let parsed_success = 0;
   let cloudinaryUrl = null;
 
+  // 1) Send PDF buffer to NLP service for text extraction
   try {
     const form = new FormData();
-    form.append('file', fs.createReadStream(filePath), {
+    const nlpStream = Readable.from(fileBuffer);
+    form.append('file', nlpStream, {
       filename: originalFilename,
       contentType: 'application/pdf',
     });
 
-    // When NLP is on Vercel, set NLP_SERVICE_URL to https://your-nlp.vercel.app/api
-const response = await axios.post(`${NLP_SERVICE_URL.replace(/\/$/, '')}/extract-text`, form, {
-      headers: form.getHeaders(),
-      maxBodyLength: Infinity,
-      maxContentLength: Infinity,
-      timeout: 30000,
-    });
+    const response = await axios.post(
+      `${NLP_SERVICE_URL.replace(/\/$/, '')}/extract-text`,
+      form,
+      {
+        headers: form.getHeaders(),
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+        timeout: 30000,
+      }
+    );
 
     if (response.data && typeof response.data.text === 'string') {
       extractedText = response.data.text;
@@ -81,30 +83,31 @@ const response = await axios.post(`${NLP_SERVICE_URL.replace(/\/$/, '')}/extract
     console.error('NLP extract-text error:', err.message || err);
   }
 
-  // Upload the PDF to Cloudinary so we don't depend on local filesystem.
-  // Use "raw" resource_type to store the file as-is.
+  // 2) Upload the same buffer directly to Cloudinary (no local disk storage)
   try {
-    const uploadResult = await cloudinary.uploader.upload(filePath, {
-      resource_type: 'raw',
-      folder: 'resumes',
-      public_id: `${user_id || 'anon'}-${Date.now()}`,
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'raw',
+          folder: 'resumes',
+          public_id: `${user_id || 'anon'}-${Date.now()}`,
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      uploadStream.end(fileBuffer);
     });
+
     cloudinaryUrl = uploadResult.secure_url;
   } catch (err) {
     console.error('Cloudinary upload error:', err.message || err);
   }
 
-  // Best-effort cleanup of local temp file
-  try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  } catch (e) {
-    console.warn('Could not delete local resume file:', e.message);
-  }
-
   // Store Cloudinary URL in file_url column
-  const file_url = cloudinaryUrl || path.basename(filePath);
+  const file_url = cloudinaryUrl;
 
   try {
     if (user_id) {
