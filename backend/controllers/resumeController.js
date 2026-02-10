@@ -7,6 +7,7 @@ const { Readable } = require('stream');
 
 const connection = db.promise();
 
+// Local: http://localhost:8000 (backend appends /extract-text). Vercel: set to https://your-nlp.vercel.app/api so it calls /api/extract-text.
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
 
 /**
@@ -80,7 +81,14 @@ exports.upload = async (req, res) => {
       parsed_success = 1;
     }
   } catch (err) {
-    console.error('NLP extract-text error:', err.message || err);
+    const status = err.response?.status;
+    const detail = err.response?.data?.detail || err.response?.data?.message;
+    console.error(
+      'NLP extract-text error:',
+      err.message || err,
+      status ? `(${status})` : '',
+      detail ? String(detail) : ''
+    );
   }
 
   // 2) Upload the same buffer directly to Cloudinary (no local disk storage)
