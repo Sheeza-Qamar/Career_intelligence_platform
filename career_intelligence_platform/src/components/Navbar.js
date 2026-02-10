@@ -4,6 +4,7 @@ import '../App.css';
 
 const Navbar = memo(() => {
   const [user, setUser] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const loadUserFromStorage = () => {
@@ -40,6 +41,8 @@ const Navbar = memo(() => {
     navigate('/login');
   };
 
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   const displayName = user?.name || user?.email || '';
   const firstInitial = displayName ? displayName.trim().charAt(0).toUpperCase() : '';
 
@@ -60,39 +63,156 @@ const Navbar = memo(() => {
           </span>
         </Link>
         <div className="landing-nav-links">
-          <NavLink to="/upload" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Upload Resume</NavLink>
-          <NavLink to="/analyze" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Job Fitness</NavLink>
-          <NavLink to="/ats-compatibility" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>ATS Compatibility</NavLink>
-          <NavLink to="/ats-generate" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Generate ATS Resume</NavLink>
-          <NavLink to="/job-search" className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}>Find Jobs</NavLink>
+          <NavLink
+            to="/upload"
+            className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}
+          >
+            Upload Resume
+          </NavLink>
+          <NavLink
+            to="/analyze"
+            className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}
+          >
+            Job Fitness
+          </NavLink>
+          <NavLink
+            to="/ats-compatibility"
+            className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}
+          >
+            ATS Compatibility
+          </NavLink>
+          <NavLink
+            to="/ats-generate"
+            className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}
+          >
+            Generate ATS Resume
+          </NavLink>
+          <NavLink
+            to="/job-search"
+            className={({ isActive }) => `landing-nav-link ${isActive ? 'active' : ''}`}
+          >
+            Find Jobs
+          </NavLink>
         </div>
-        {!user && (
-          <div className="landing-nav-auth-buttons">
-            <Link to="/login" className="landing-nav-link landing-nav-link-btn">
-              Login
-            </Link>
-            <Link to="/signup" className="landing-cta-nav-btn">
-              Sign up
-            </Link>
-          </div>
-        )}
 
-        {user && (
-          <div className="landing-nav-user">
-            <div className="landing-avatar-circle">{firstInitial}</div>
-            <div className="landing-nav-user-info">
-              <span className="landing-nav-username">{displayName}</span>
-              <button
-                type="button"
-                className="landing-nav-logout"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
+        {/* Mobile hamburger + auth on the right */}
+        <div className="landing-nav-right">
+          {!user && (
+            <div className="landing-nav-auth-buttons landing-nav-auth-buttons-desktop">
+              <Link to="/login" className="landing-nav-link landing-nav-link-btn">
+                Login
+              </Link>
+              <Link to="/signup" className="landing-cta-nav-btn">
+                Sign up
+              </Link>
             </div>
-          </div>
-        )}
+          )}
+
+          {user && (
+            <div className="landing-nav-user landing-nav-user-desktop">
+              <div className="landing-avatar-circle">{firstInitial}</div>
+              <div className="landing-nav-user-info">
+                <span className="landing-nav-username">{displayName}</span>
+                <button
+                  type="button"
+                  className="landing-nav-logout"
+                  onClick={() => {
+                    closeMobileMenu();
+                    handleLogout();
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile hamburger button */}
+          <button
+            type="button"
+            className="landing-nav-mobile-toggle"
+            aria-label="Toggle navigation"
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+          >
+            <span className="landing-nav-mobile-line" />
+            <span className="landing-nav-mobile-line" />
+          </button>
+        </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {isMobileMenuOpen && (
+        <div className="landing-nav-mobile-menu">
+          <NavLink
+            to="/upload"
+            className={({ isActive }) => `landing-nav-mobile-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            Upload Resume
+          </NavLink>
+          <NavLink
+            to="/analyze"
+            className={({ isActive }) => `landing-nav-mobile-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            Job Fitness
+          </NavLink>
+          <NavLink
+            to="/ats-compatibility"
+            className={({ isActive }) => `landing-nav-mobile-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            ATS Compatibility
+          </NavLink>
+          <NavLink
+            to="/ats-generate"
+            className={({ isActive }) => `landing-nav-mobile-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            Generate ATS Resume
+          </NavLink>
+          <NavLink
+            to="/job-search"
+            className={({ isActive }) => `landing-nav-mobile-link ${isActive ? 'active' : ''}`}
+            onClick={closeMobileMenu}
+          >
+            Find Jobs
+          </NavLink>
+
+          {!user && (
+            <div className="landing-nav-mobile-auth">
+              <Link
+                to="/login"
+                className="landing-nav-mobile-link"
+                onClick={closeMobileMenu}
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="landing-nav-mobile-link primary"
+                onClick={closeMobileMenu}
+              >
+                Sign up
+              </Link>
+            </div>
+          )}
+
+          {user && (
+            <button
+              type="button"
+              className="landing-nav-mobile-link"
+              onClick={() => {
+                closeMobileMenu();
+                handleLogout();
+              }}
+            >
+              Logout
+            </button>
+          )}
+        </div>
+      )}
     </nav>
   );
 });

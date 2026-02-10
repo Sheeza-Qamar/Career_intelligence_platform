@@ -1513,13 +1513,114 @@ body.landing-page-active::-webkit-scrollbar {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 @media (min-width: 768px) {
   .landing-nav-links {
     display: flex;
     gap: 1.25rem;
+    flex: 1;
+    justify-content: center;
   }
+}
+
+.landing-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.landing-nav-auth-buttons-desktop,
+.landing-nav-user-desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .landing-nav-auth-buttons-desktop,
+  .landing-nav-user-desktop {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.landing-nav-mobile-toggle {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  padding: 0;
+  cursor: pointer;
+}
+
+.landing-nav-mobile-line {
+  height: 2px;
+  width: 16px;
+  margin: 0 auto;
+  border-radius: 9999px;
+  background: #e5e7eb;
+}
+
+@media (min-width: 768px) {
+  .landing-nav-mobile-toggle {
+    display: none;
+  }
+}
+
+.landing-nav-mobile-menu {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.98);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.landing-nav-mobile-link {
+  width: 100%;
+  padding: 0.6rem 0.4rem;
+  border-radius: 0.5rem;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.landing-nav-mobile-link.active {
+  background: rgba(79, 70, 229, 0.25);
+  color: #c7d2fe;
+}
+
+.landing-nav-mobile-link.primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
+  justify-content: center;
+}
+
+.landing-nav-mobile-link:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.landing-nav-mobile-auth {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 @media (min-width: 1024px) {
@@ -3238,4 +3339,136 @@ body.landing-page-active::-webkit-scrollbar {
 .job-search-empty p {
   color: #9ca3af;
   font-size: 0.9375rem;
+}
+
+/* ============================================
+   MOBILE REFINEMENTS (compact, fluent layout)
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Auth / card-based pages */
+  .auth-main {
+    padding: 1.75rem 1rem 2.5rem;
+    align-items: stretch;
+  }
+
+  .auth-card {
+    max-width: 100%;
+    padding: 1.75rem 1.4rem;
+    border-radius: 0.9rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.85);
+  }
+
+  .upload-card {
+    max-width: 100%;
+  }
+
+  .auth-title {
+    font-size: 1.35rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-section {
+    padding: 1rem 0.9rem;
+  }
+
+  .form-section + .form-section {
+    margin-top: 1.25rem;
+  }
+
+  .analysis-section-card:nth-child(2) {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .analysis-section-card {
+    padding: 1.35rem;
+  }
+
+  .analysis-score-circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  /* Job search */
+  .job-search-container {
+    padding: 1.75rem 1rem;
+  }
+
+  .job-search-form {
+    padding: 1.25rem;
+  }
+
+  .job-search-table th,
+  .job-search-table td {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Tighter mobile layout */
+  .landing-hero {
+    padding: 2.25rem 1rem;
+  }
+
+  .landing-hero-title {
+    font-size: 1.8rem;
+  }
+
+  .landing-section {
+    padding: 2.5rem 1rem;
+  }
+
+  .landing-section-title {
+    font-size: 1.6rem;
+  }
+
+  .landing-section-description {
+    font-size: 0.9rem;
+  }
+
+  .landing-cta-content {
+    padding: 2.25rem 1.5rem;
+  }
+
+  .landing-cta-title {
+    font-size: 1.6rem;
+  }
+
+  .landing-cta-buttons {
+    gap: 0.75rem;
+  }
+
+  .auth-main {
+    padding: 1.5rem 0.85rem 2.25rem;
+  }
+
+  .auth-card {
+    padding: 1.5rem 1.2rem;
+  }
+
+  .form-section-title {
+    font-size: 0.95rem;
+  }
+
+  .auth-input {
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .job-search-title {
+    font-size: 1.7rem;
+  }
+
+  .job-search-subtitle {
+    font-size: 0.9rem;
+  }
 }
