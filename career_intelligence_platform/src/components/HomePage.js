@@ -356,24 +356,24 @@ const HomePage = () => {
             <h4 className="landing-footer-title">Product</h4>
             <ul className="landing-footer-links">
               <li><a href="#features" className="landing-footer-link">Features</a></li>
-              <li><a href="#" className="landing-footer-link">Pricing</a></li>
-              <li><a href="#" className="landing-footer-link">Security</a></li>
+              <li><a href="/pricing" className="landing-footer-link">Pricing</a></li>
+              <li><a href="/security" className="landing-footer-link">Security</a></li>
             </ul>
           </div>
           <div>
             <h4 className="landing-footer-title">Company</h4>
             <ul className="landing-footer-links">
-              <li><a href="#" className="landing-footer-link">About</a></li>
-              <li><a href="#" className="landing-footer-link">Blog</a></li>
-              <li><a href="#" className="landing-footer-link">Careers</a></li>
+              <li><a href="/about" className="landing-footer-link">About</a></li>
+              <li><a href="/blog" className="landing-footer-link">Blog</a></li>
+              <li><a href="/careers" className="landing-footer-link">Careers</a></li>
             </ul>
           </div>
           <div>
             <h4 className="landing-footer-title">Connect</h4>
             <ul className="landing-footer-links">
-              <li><a href="#" className="landing-footer-link">Twitter</a></li>
-              <li><a href="#" className="landing-footer-link">LinkedIn</a></li>
-              <li><a href="#" className="landing-footer-link">Contact</a></li>
+              <li><a href="https://twitter.com" className="landing-footer-link">Twitter</a></li>
+              <li><a href="https://linkedin.com" className="landing-footer-link">LinkedIn</a></li>
+              <li><a href="/contact" className="landing-footer-link">Contact</a></li>
             </ul>
           </div>
         </div>
@@ -381,8 +381,8 @@ const HomePage = () => {
         <div className="landing-footer-bottom">
           <p>© 2024 Career Intelligence Platform. All rights reserved.</p>
           <div className="landing-footer-bottom-links">
-            <a href="#" className="landing-footer-link">Privacy Policy</a>
-            <a href="#" className="landing-footer-link">Terms of Service</a>
+            <a href="/privacy" className="landing-footer-link">Privacy Policy</a>
+            <a href="/terms" className="landing-footer-link">Terms of Service</a>
           </div>
         </div>
       </footer>

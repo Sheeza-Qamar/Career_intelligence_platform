@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import '../App.css';
 import { API_BASE } from '../config';
 
 const ATSCompatibilityPage = () => {
-  const navigate = useNavigate();
   const logoPattern = `/web_logo.png`;
   const [resumeId, setResumeId] = useState(null);
   const [myResumeFilename, setMyResumeFilename] = useState('');

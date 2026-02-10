@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import { API_BASE } from '../config';
 import { clearCachedAnalysis } from '../utils/jobFitnessAnalysisCache';
 
 const UploadResumePage = () => {
-  const navigate = useNavigate();
   const logoPattern = `/web_logo.png`;
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState('');
