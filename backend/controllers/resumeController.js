@@ -71,16 +71,22 @@ exports.upload = async (req, res) => {
       contentType: 'application/pdf',
     });
 
-    const response = await axios.post(
-      `${getNlpApiBase()}/extract-text`,
-      form,
-      {
-        headers: form.getHeaders(),
-        maxBodyLength: Infinity,
-        maxContentLength: Infinity,
-        timeout: 30000,
-      }
-    );
+    let headers = form.getHeaders();
+    try {
+      const length = await new Promise((resolve, reject) => {
+        form.getLength((err, len) => (err ? reject(err) : resolve(len)));
+      });
+      headers = { ...headers, 'Content-Length': length };
+    } catch {
+      // If length can't be determined, proceed without it.
+    }
+
+    const response = await axios.post(`${getNlpApiBase()}/extract-text`, form, {
+      headers,
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
+      timeout: 30000,
+    });
 
     if (response.data && typeof response.data.text === 'string') {
       extractedText = response.data.text;

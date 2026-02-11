@@ -73,8 +73,18 @@ exports.analyzeATS = async (req, res) => {
       // We always call the /api/analyze endpoint; handle URLs with or without /api.
       const atsUrl = `${getNlpApiBase()}/analyze`;
 
+      let headers = form.getHeaders();
+      try {
+        const length = await new Promise((resolve, reject) => {
+          form.getLength((err, len) => (err ? reject(err) : resolve(len)));
+        });
+        headers = { ...headers, 'Content-Length': length };
+      } catch {
+        // If length can't be determined, proceed without it.
+      }
+
       const response = await axios.post(atsUrl, form, {
-        headers: form.getHeaders(),
+        headers,
         maxBodyLength: Infinity,
         maxContentLength: Infinity,
         timeout: 60000, // 60 seconds timeout
