@@ -7,8 +7,14 @@ const { Readable } = require('stream');
 
 const connection = db.promise();
 
-// Local: http://localhost:8000 (backend appends /extract-text). Vercel: set to https://your-nlp.vercel.app/api so it calls /api/extract-text.
+// Local: http://localhost:8000
+// Vercel: can be https://your-nlp.vercel.app or https://your-nlp.vercel.app/api
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
+
+const getNlpApiBase = () => {
+  const base = (NLP_SERVICE_URL || '').replace(/\/$/, '');
+  return base.endsWith('/api') ? base : `${base}/api`;
+};
 
 /**
  * GET /api/resumes/me (auth required)
@@ -66,7 +72,7 @@ exports.upload = async (req, res) => {
     });
 
     const response = await axios.post(
-      `${NLP_SERVICE_URL.replace(/\/$/, '')}/extract-text`,
+      `${getNlpApiBase()}/extract-text`,
       form,
       {
         headers: form.getHeaders(),

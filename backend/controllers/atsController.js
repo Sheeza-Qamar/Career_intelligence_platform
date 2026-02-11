@@ -5,8 +5,14 @@ const db = require('../db');
 const connection = db.promise();
 
 // ATS Service URL - use NLP service (same as extract-text service)
+// Vercel: can be https://your-nlp.vercel.app or https://your-nlp.vercel.app/api
 const NLP_SERVICE_URL = process.env.NLP_SERVICE_URL || 'http://localhost:8000';
 const ATS_SERVICE_URL = NLP_SERVICE_URL; // Use same service
+
+const getNlpApiBase = () => {
+  const base = (ATS_SERVICE_URL || '').replace(/\/$/, '');
+  return base.endsWith('/api') ? base : `${base}/api`;
+};
 
 /**
  * POST /api/ats/analyze
@@ -64,11 +70,8 @@ exports.analyzeATS = async (req, res) => {
 
     // Call ATS analysis service
     try {
-      // Convention: NLP_SERVICE_URL should point to the base host/root,
-      // e.g. http://localhost:8000 or https://your-nlp-service.vercel.app
-      // We always call the /api/analyze endpoint on that host.
-      const baseUrl = (ATS_SERVICE_URL || '').replace(/\/$/, '');
-      const atsUrl = `${baseUrl}/api/analyze`;
+      // We always call the /api/analyze endpoint; handle URLs with or without /api.
+      const atsUrl = `${getNlpApiBase()}/analyze`;
 
       const response = await axios.post(atsUrl, form, {
         headers: form.getHeaders(),
